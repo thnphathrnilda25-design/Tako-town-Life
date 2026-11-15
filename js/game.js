@@ -951,11 +951,11 @@ function openMenu(name, opts) {
   closePanel();
   menuEl.replaceChildren(el('h3', { textContent: name }, el('button', { className: 'x', textContent: '✕', title: 'ปิด', onclick: closeMenu })),
     ...opts.map(([t, fn], i) => el('button', { textContent: `${i + 1}. ${t}`, onclick: () => { closeMenu(); fn(); } })),
-    el('button', { className: 'close', textContent: 'ปิด (Esc)', onclick: closeMenu }));
+    el('button', { className: 'close', textContent: matchMedia('(pointer:coarse)').matches ? 'ปิด' : 'ปิด (Esc)', onclick: closeMenu }));
   menuEl.hidden = false; menuOpen = true; keys.clear(); menuEl.querySelector('button').focus();
 }
 function closeMenu() { menuEl.hidden = true; menuOpen = false; }
-function openPanel(title, build) { closeMenu(); panelBuild = () => { panelEl.replaceChildren(el('h3', { textContent: title }, el('button', { className: 'x', textContent: '✕', title: 'ปิด', onclick: closePanel })), el('div', { className: 'body' }, build()), el('button', { className: 'close', textContent: 'ปิด (Esc)', onclick: closePanel })); }; panelBuild(); panelEl.hidden = false; panelOpen = true; keys.clear(); }
+function openPanel(title, build) { closeMenu(); panelBuild = () => { panelEl.replaceChildren(el('h3', { textContent: title }, el('button', { className: 'x', textContent: '✕', title: 'ปิด', onclick: closePanel })), el('div', { className: 'body' }, build()), el('button', { className: 'close', textContent: matchMedia('(pointer:coarse)').matches ? 'ปิด' : 'ปิด (Esc)', onclick: closePanel })); }; panelBuild(); panelEl.hidden = false; panelOpen = true; keys.clear(); }
 function refreshPanel() { if (panelOpen) { const sc = panelEl.querySelector('.body')?.scrollTop; panelBuild(); const b = panelEl.querySelector('.body'); if (b) b.scrollTop = sc; } }
 function closePanel() { panelEl.hidden = true; panelOpen = false; }
 const row = (ic, name, sub, ...right) => el('div', { className: 'item' }, el('div', { className: 'ic' }, ic), el('div', {}, el('div', {}, name), sub ? el('div', { className: 'sub' }, sub) : null), el('div', {}, ...right));
@@ -1151,6 +1151,28 @@ $('bInv').onclick = () => player && invPanel();
 $('bJour').onclick = () => player && journal();
 bDeco.onclick = () => player && decoToggle();
 $('abtn').addEventListener('pointerdown', e => { e.preventDefault(); if (mg) mgPress(); else if (!menuOpen && !panelOpen && !busy && !deco.on) interact(); });
+// Finger taps: press the button on pointerup ourselves, then swallow the browser's own click for a moment,
+// so a tap works even when a phone browser drops or delays the synthesized click (and never fires twice).
+{
+  let down = null, fastAt = -1e9;
+  addEventListener('pointerdown', e => { down = e.pointerType === 'touch' ? { x: e.clientX, y: e.clientY, t: e.target, at: performance.now() } : null; }, true);
+  addEventListener('pointercancel', () => { down = null; }, true);   // the finger started scrolling
+  addEventListener('pointerup', e => {
+    const d = down; down = null; if (!d || e.pointerType !== 'touch') return;
+    if (Math.hypot(e.clientX - d.x, e.clientY - d.y) > 12 || performance.now() - d.at > 700) return;
+    const b = d.t.closest?.('button:not(:disabled), #talk .tx, #err'); if (!b || b.id === 'abtn' || b.onpointerdown) return;
+    fastAt = performance.now(); b.click();
+  }, true);
+  addEventListener('click', e => { if (e.isTrusted && performance.now() - fastAt < 650) { e.stopImmediatePropagation(); e.preventDefault(); } }, true);
+}
+// phone back button / back swipe closes the open window instead of leaving the game
+if (TOUCH) {   // phones only: on a computer the browser's Back button should still leave
+  history.pushState({ game: 1 }, '');
+  addEventListener('popstate', () => {
+    if (typeof TK !== 'undefined' && TK) closeTalk(); else if (panelOpen) closePanel(); else if (menuOpen) closeMenu(); else if (player && !mg && !busy && typeof pauseMenu === 'function') pauseMenu();
+    history.pushState({ game: 1 }, '');
+  });
+}
 {
   const stick = $('stick'), knob = $('knob');
   const set = e => {

@@ -40,7 +40,7 @@ function settingsPanel() {
     row('🎚️', 'ความยาก', 'ยาก: ความต้องการลดเร็วขึ้นและมีเหตุร้ายบ่อยขึ้น', ...['easy', 'normal', 'hard'].map(d => el('button', { className: CFG.diff === d ? 'on' : '', style: CFG.diff === d ? 'border-color:var(--gold)' : '', textContent: { easy: 'ง่าย', normal: 'ปกติ', hard: 'ยาก' }[d], onclick: () => { CFG.diff = d; cfgSave(); refreshPanel(); } }))),
     row('💾', 'บันทึกอัตโนมัติทุก 10 วินาที', '', btn(CFG.autosave ? 'เปิด' : 'ปิด', () => { CFG.autosave = !CFG.autosave; cfgSave(); refreshPanel(); })),
     row('💭', 'ฟองความคิดของชาวเมือง', 'ปิดถ้ารู้สึกว่ารกจอ', btn(CFG.thoughts !== false ? 'เปิด' : 'ปิด', () => { CFG.thoughts = CFG.thoughts === false; cfgSave(); refreshPanel(); })),
-    row('📱', 'ปุ่มควบคุม', 'WASD/ลูกศร เดิน · E ทำกิจกรรม · I กระเป๋า · J สมุด · P โทรศัพท์ · B แต่งบ้าน · Esc เมนู', null)]);
+    row('📱', 'ปุ่มควบคุม', matchMedia('(pointer:coarse)').matches ? 'จอยซ้ายล่างเดิน · ปุ่ม A ทำกิจกรรม · ปุ่มขวาล่างเปิดเมนู/กระเป๋า/สมุด · ✕ หรือแตะข้างนอกหรือปุ่มย้อนกลับเพื่อปิด' : 'WASD/ลูกศร เดิน · E ทำกิจกรรม · I กระเป๋า · J สมุด · P โทรศัพท์ · B แต่งบ้าน · Esc เมนู', null)]);
 }
 const bMenu = el('button', { id: 'bMenu', title: 'เมนู (Esc)', ariaLabel: 'เมนู', textContent: '⚙️', onclick: () => player && !overlayOpen() && pauseMenu() }); $('dock').prepend(bMenu);
 console.assert(typeof dm() === 'number' && load(1) !== undefined, 'system ready');
