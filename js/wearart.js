@@ -27,13 +27,14 @@ function charCanvas(p, view, frame) {
     if (side) { const fx2 = 12 + Math.round(s * 2.5); R(shade(p.C, -25), fx2, 18, 3, 6); R(SKD, fx2, 24, 3, 2); }   // far arm, behind the body
     // torso
     if (side) { R(p.c, 8, 17, 8, 10); R(p.C, 8, 17, 2, 10); R(p.C, 8, 26, 8, 1); R(p.a, 15, 17, 1, 3); }
-    else { R(p.c, 7, 17, 10, 10); R(p.C, 15, 17, 2, 10); R(p.C, 7, 26, 10, 1); if (!back) { R(p.a, 11, 17, 2, 7); R(p.a, 10, 17, 4, 1); } }
-    if (p.skirt && !(p.botS && p.botS !== 'skirt')) { const x0 = side ? 7 : 6, w = side ? 10 : 12; R(p.p, x0, 25, w, 5); R(shade(p.p, -35), x0, 29, w, 1); for (let i = x0 + 2; i < x0 + w; i += 3) R(shade(p.p, -20), i, 26, 1, 3); }
+    else { R(p.c, 7, 17, 10, 10); R(p.C, 15, 17, 2, 10); R(p.C, 7, 26, 10, 1); R(shade(p.c, 18), 8, 18, 1, 6); if (!back) { R(SKD, 10, 17, 4, 1); R(SKD, 11, 18, 2, 1); R(p.C, 9, 17, 1, 1); R(p.C, 14, 17, 1, 1); } }   // plain crew neck: no tie on every shirt
+    if (p.skirt && (!p.botS || p.botS === 'skirt' || p.botS === 'plaidskirt' || p.botS === 'tennisskirt')) { const x0 = side ? 7 : 6, w = side ? 10 : 12; R(p.p, x0, 25, w, 5); R(shade(p.p, -35), x0, 29, w, 1); for (let i = x0 + 2; i < x0 + w; i += 3) R(shade(p.p, -20), i, 26, 1, 3); }
     // arms
     if (side) { const ax = 11 - Math.round(s * 2.5); R(p.c, ax, 18, 3, 7); R(p.C, ax, 18, 1, 7); R(shade(p.c, 25), ax + 2, 18, 1, 5); R(SK, ax, 25, 3, 2); }   // sleeve reads as a sleeve, not a zipper
     else { R(p.c, 5, 18 + sw, 2, 7); R(SK, 5, 25 + sw, 2, 2); R(p.C, 17, 18 - sw, 2, 7); R(SKD, 17, 25 - sw, 2, 2); }
     R(SKD, 10, 16, 4, 1);
     wearBody(p, view, side, SK);
+    if (p.bust && !back) { if (side) { R(p.c, 16, 19, 1, 2); R('#00000030', 15, 21, 2, 1); } else { R('#ffffff2a', 8, 19, 3, 1); R('#ffffff2a', 13, 19, 3, 1); R('#00000030', 8, 21, 3, 1); R('#00000030', 13, 21, 3, 1); } }   // adult women only: a soft chest curve, shading over any top
     // head
     if (back) {
       capRows(p.h); R(p.h, 5, 7, 14, 9); R(p.H, 5, 14, 14, 2); R(p.L, 9, 3, 5, 1); R(p.L, 8, 4, 2, 1);
@@ -48,7 +49,7 @@ function charCanvas(p, view, frame) {
     } else {
       R(SK, 7, 6, 10, 10); R(SK, 6, 7, 12, 8); R(SKD, 5, 10, 1, 3); R(SKD, 18, 10, 1, 3);
       capRows(p.h); R(p.h, 6, 7, 12, 2); for (const x of [6, 9, 13, 16]) R(p.h, x, 9, 2, 1);
-      R(p.h, 5, 7, 2, 7); R(p.H, 17, 7, 2, 7);
+      R(p.h, 5, 7, 2, 7); R(p.H, 17, 7, 2, 7); R(p.H, 10, 5, 1, 4); R(p.H, 14, 6, 1, 3); R(p.L, 7, 5, 1, 2);   // strand lines so hair is not one flat blob
       if (p.style === 'swept') { R(p.h, 6, 9, 6, 2); R(p.h, 6, 11, 3, 1); }
       if (p.style === 'bob') { R(p.h, 4, 7, 3, 10); R(p.H, 17, 7, 3, 10); }
       if (p.style === 'long') { R(p.h, 4, 7, 3, 16); R(p.H, 17, 7, 3, 16); }
@@ -98,7 +99,7 @@ const TOPFX = {   // overlays on the torso box (x0..x0+w, y 17..26)
   sweater: (p, x, w) => { for (let i = x + 1; i < x + w; i += 2) R(p.C, i, 18, 1, 7); R(p.C, x, 17, w, 1); },
   vest: (p, x, w) => { R(p.a, x, 17, 3, 10); R(p.a, x + w - 3, 17, 3, 10); R('#f4f4f4', 11, 17, 2, 8); },
   overalls: (p, x, w) => { R(p.a, x + 1, 17, 2, 10); R(p.a, x + w - 3, 17, 2, 10); R(p.a, x + 2, 21, w - 4, 6); R('#ffd54a', x + 2, 21, 1, 1); R('#ffd54a', x + w - 3, 21, 1, 1); },
-  polo: () => { R('#fff', 9, 17, 6, 1); },
+  polo: p => { R('#fff', 9, 17, 6, 1); R(p.C, 11, 18, 2, 3); R('#fff', 11, 19, 1, 1); },
   jersey: (p, x, w) => { R('#fff', x, 17, 1, 10); R('#fff', x + w - 1, 17, 1, 10); R('#fff', 10, 19, 4, 1); R('#fff', 11, 20, 2, 4); },
   coat: (p, x, w) => { R(p.c, 7, 26, 10, 6); R(p.C, 11, 17, 2, 15); R(p.C, x, 17, 3, 3); R(p.C, x + w - 3, 17, 3, 3); R(p.a, 11, 20, 2, 1); },
   pajamas: (p, x) => { for (const [dx, dy] of [[1, 1], [5, 3], [8, 1], [3, 6], [7, 7]]) R(p.a, x + dx, 17 + dy, 1, 1); },

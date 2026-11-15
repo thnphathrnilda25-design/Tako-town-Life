@@ -1,4 +1,18 @@
 'use strict';
+// Thai shop signs: drawn with the system Thai font, then alpha-thresholded so the letters stay crisp pixels
+const SIGN_TH = { MART: 'มินิมาร์ท', CAFE: 'คาเฟ่', OFFICE: 'ออฟฟิศ', FURNI: 'เฟอร์นิเจอร์', 'TOWN HALL': 'ศาลากลาง', MUSEUM: 'พิพิธภัณฑ์', SCHOOL: 'โรงเรียน', BOOKS: 'ห้องสมุด', CINEMA: 'โรงหนัง',
+  FLOWER: 'ร้านดอกไม้', CLINIC: 'คลินิก', GYM: 'ฟิตเนส', PETS: 'สัตว์เลี้ยง', TOYS: 'ของเล่น', FASHION: 'เสื้อผ้า', CHAPEL: 'โบสถ์', 'FOR RENT': 'ให้เช่า', SALON: 'ร้านทำผม', PETIT: 'บูติก', MARKET: 'ตลาดสด' };
+const SIGN_C = {}, SS = 4;   // text -> sign board built once at 4x, drawn smoothed at 1x so Thai letters stay sharp on the zoomed view
+function thaiSign(text, cx, sy) {
+  let c = SIGN_C[text];
+  if (!c) {
+    const font = `600 ${11 * SS}px Mitr, "Leelawadee UI", Tahoma, sans-serif`, m = ctx2d(mk(1, 1)); m.font = font;
+    const tw = Math.ceil(m.measureText(text).width / SS), W = tw + 12; c = SIGN_C[text] = mk(W * SS, 20 * SS); const x = ctx2d(c);
+    x.fillStyle = '#3a2a22'; x.fillRect(0, 0, W * SS, 20 * SS); x.fillStyle = '#6a4a32'; x.fillRect(SS, SS, (W - 2) * SS, 18 * SS);
+    x.font = font; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = '#ffe9a0'; x.fillText(text, W * SS / 2, 10.5 * SS);
+  }
+  const sm = g.imageSmoothingEnabled; g.imageSmoothingEnabled = true; g.drawImage(c, Math.round(cx - c.width / SS / 2), sy, c.width / SS, 20); g.imageSmoothingEnabled = sm;
+}
 // Map art and layout: the town keeps every building where it was, and grows south by 12 rows:
 // a cliff-lined river with three wooden bridges, a flower meadow and a forest edge. Roads become cobblestone,
 // pavements become dirt paths, buildings get gable tile roofs / timber or brick walls, new trees and scenery.
@@ -146,7 +160,7 @@ function drawBuilding(b) {
   R(shade(b.glass ? '#b8684e' : b.wall, -25), X + w - 4, top, 4, b.wh - 6);
   for (const [wx, wy] of b.win) { drawWindow(b, wx, wy, night); if (!b.glass) { const sc = b.curtain ? shade(b.curtain, -60) : '#4a7a5a'; R(sc, wx - 6, wy - 2, 3, 20); R(sc, wx + 19, wy - 2, 3, 20); } }
   if (b.awn) { const ay = bot - 46; for (let i = 0; i < w; i += 8) { const c = i % 16 ? b.awn[1] : b.awn[0]; R(c, X + i, ay, 8, 10); R(c, X + i + 2, ay + 10, 4, 2); } R('#0002', X, ay + 12, w, 3); }
-  if (b.sign) { const tw = ptw(b.sign, 2) + 10, sx = Math.round(b.dx - tw / 2), sy = top + 6; R('#3a2a22', sx, sy, tw, 16); R('#6a4a32', sx + 1, sy + 1, tw - 2, 14); ptext(b.sign, sx + 5, sy + 3, '#ffe9a0', 2); }
+  if (b.sign) thaiSign(SIGN_TH[b.sign] || b.n || b.sign, b.dx, top + 4);
   const d = b.door || '#8a5430';
   R('#4a3022', b.dx - 11, bot - 32, 22, 32); R(d, b.dx - 9, bot - 30, 18, 30);
   if (b.glass) { R('#9ad4f0', b.dx - 7, bot - 28, 6, 26); R('#9ad4f0', b.dx + 1, bot - 28, 6, 26); }

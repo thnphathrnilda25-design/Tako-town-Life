@@ -57,7 +57,7 @@ function startFishing() {
 }
 function fishUI() {
   mgEl.replaceChildren(el('h3', { textContent: '🎣 ตกปลา' }), el('div', { className: 'fb', style: 'font-size:22px;height:40px', textContent: mg.msg }),
-    el('button', { textContent: 'สาวเบ็ด! (E / Space)', onpointerdown: e => { e.preventDefault(); mgPress(); } }), el('div', {}, el('button', { style: 'margin-top:8px;font-size:14px;padding:4px 16px', textContent: 'เลิกตกปลา', onclick: () => { mg = null; mgEl.hidden = true; } })));
+    el('button', { textContent: 'สาวเบ็ด! (E / สเปซบาร์)', onpointerdown: e => { e.preventDefault(); mgPress(); } }), el('div', {}, el('button', { style: 'margin-top:8px;font-size:14px;padding:4px 16px', textContent: 'เลิกตกปลา', onclick: () => { mg = null; mgEl.hidden = true; } })));
   mgEl.hidden = false;
 }
 function fishTick(dt) {

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Pixel Town 32</title>
+<title>เมืองพิกเซล</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -113,7 +113,7 @@ body:has(#panel:not([hidden])) #dock,body:has(#menu:not([hidden])) #dock,body:ha
 <body>
 <canvas id="c"></canvas>
 <div id="hud" class="panel"></div>
-<div id="help" class="panel">เดิน WASD/ลูกศร · E/Space ทำกิจกรรม · I กระเป๋า · J สมุด · P โทรศัพท์ · B แต่งบ้าน · Esc ปิด</div>
+<div id="help" class="panel">เดิน WASD/ลูกศร · E/สเปซบาร์ ทำกิจกรรม · I กระเป๋า · J สมุด · P โทรศัพท์ · B แต่งบ้าน · Esc ปิด</div>
 <div id="hint" class="panel" hidden></div>
 <div id="msg" class="panel" hidden></div>
 <div id="toasts"></div>
@@ -124,8 +124,8 @@ body:has(#panel:not([hidden])) #dock,body:has(#menu:not([hidden])) #dock,body:ha
 <div id="dock"><button id="bInv" title="กระเป๋า (I)" aria-label="กระเป๋า">🎒</button><button id="bJour" title="สมุดบันทึก (J)" aria-label="สมุดบันทึก">📖</button><button id="bDeco" title="แต่งบ้าน (B)" aria-label="แต่งบ้าน" hidden>🛠️</button></div>
 <div id="touch"><div id="stick"><div id="knob"></div></div><button id="abtn" aria-label="ทำกิจกรรม">A</button></div>
 <div id="fade"></div>
-<div id="select"><h1>Pixel Town</h1><div>เลือกตัวละครเพื่อเริ่มชีวิตใหม่ในเมือง</div><div class="row" id="pick"></div></div>
+<div id="select"><h1>เมืองพิกเซล</h1><div>เลือกตัวละครเพื่อเริ่มชีวิตใหม่ในเมือง</div><div class="row" id="pick"></div></div>
 <script>/* load order matters; the timestamp stops stale cached modules */
-['people', 'game', 'mapart', 'wearart', 'life', 'seasons', 'school', 'shops', 'pets', 'wardrobe', 'minis', 'anim', 'love', 'phone', 'walk', 'dialog', 'events', 'audio', 'collect', 'biz', 'quests', 'adventure', 'mayor', 'talkbox', 'goals', 'wallet', 'lively', 'homes', 'family', 'collections', 'career', 'housing', 'social', 'memory', 'realism', 'system'].forEach(n => document.write('<script src="js/' + n + '.js?' + Date.now() + '"><\/script>'));</script>
+['people', 'game', 'mapart', 'wearart', 'life', 'seasons', 'school', 'shops', 'pets', 'wardrobe', 'fashion', 'minis', 'anim', 'love', 'phone', 'walk', 'dialog', 'events', 'audio', 'collect', 'biz', 'quests', 'adventure', 'mayor', 'talkbox', 'goals', 'wallet', 'lively', 'homes', 'family', 'collections', 'career', 'housing', 'social', 'memory', 'realism', 'system'].forEach(n => document.write('<script src="js/' + n + '.js?' + Date.now() + '"><\/script>'));</script>
 </body>
 </html>

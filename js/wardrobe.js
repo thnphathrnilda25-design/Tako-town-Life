@@ -9,7 +9,7 @@ const BOTTOMS = [['jeans', 'กางเกงยีนส์', 80], ['shorts', 
 const SHOES = [['sneakers', 'รองเท้าผ้าใบ', 70], ['boots', 'บูท', 130], ['sandals', 'รองเท้าแตะรัดส้น', 50], ['heels', 'ส้นสูง', 120], ['slippers', 'รองเท้าแตะ', 40], ['plain', 'รองเท้า', 60]];
 const HATS = [['cap', 'หมวกแก๊ป', 50], ['beanie', 'หมวกไหมพรม', 60], ['sunhat', 'หมวกกันแดด', 80], ['beret', 'หมวกเบเรต์', 70], ['crown', 'มงกุฎ', 400], ['catears', 'หูแมว', 90], ['party', 'หมวกปาร์ตี้', 40], ['helmet', 'หมวกกันน็อก', 100],
   ['headband', 'ผ้าคาดหัว', 30], ['wizard', 'หมวกพ่อมด', 180], ['bow', 'โบว์ผม', 40], ['flowers', 'มงกุฎดอกไม้', 90]];
-const GLASSES = [['round', 'แว่นกลม', 90], ['square', 'แว่นเหลี่ยม', 90], ['sun', 'แว่นกันแดด', 110], ['heart', 'แว่นหัวใจ', 100], ['monocle', 'แว่นตาข้างเดียว', 150], ['vr', 'ชุดแว่น VR', 300]];
+const GLASSES = [['round', 'แว่นกลม', 90], ['square', 'แว่นเหลี่ยม', 90], ['sun', 'แว่นกันแดด', 110], ['heart', 'แว่นหัวใจ', 100], ['monocle', 'แว่นตาข้างเดียว', 150], ['vr', 'แว่นเสมือนจริง', 300]];
 const EXTRAS = [['scarf', 'ผ้าพันคอ', 70], ['necklace', 'สร้อยคอ', 120], ['bowtie', 'หูกระต่าย', 60], ['backpack', 'กระเป๋าเป้', 110], ['headphones', 'หูฟัง', 150], ['mask', 'หน้ากากอนามัย', 20], ['wings', 'ปีกนางฟ้า', 350],
   ['earrings', 'ต่างหู', 100], ['cape', 'ผ้าคลุมฮีโร่', 160]];
 const HAIRSTYLES = [['short', 'สั้น'], ['swept', 'ปัดข้าง'], ['bob', 'บ๊อบ'], ['long', 'ยาว']].map(([s, n]) => ({ id: s, n, style: s, hx: '', price: 0 }))
@@ -27,7 +27,7 @@ function addItems(slot, table, ncol) {
   });
 }
 addItems('top', TOPS, 3); addItems('bottom', BOTTOMS, 3); addItems('shoes', SHOES, 2); addItems('hat', HATS, 2); addItems('gl', GLASSES, 0); addItems('acc', EXTRAS, 2);
-const TABS = { hair: 'ทรงผม', dye: 'สีย้อมผม', top: 'เสื้อ', bottom: 'กระโปรง/กางเกง', shoes: 'รองเท้า', hat: 'หมวก', gl: 'แว่นตา', acc: 'เครื่องประดับ' };
+const TABS = { look: 'ลุคแฟชั่น', hair: 'ทรงผม', dye: 'สีย้อมผม', top: 'เสื้อ', bottom: 'กระโปรง/กางเกง', shoes: 'รองเท้า', hat: 'หมวก', gl: 'แว่นตา', acc: 'เครื่องประดับ' };
 
 const wearOf = () => st.wear || (st.wear = {});
 const owned = id => !!(st.owned && st.owned[id]);
@@ -44,7 +44,7 @@ function wearPal() {
   if (dy) Object.assign(o, { h: dy[0], H: dy[1], L: dy[2] });
   return o;
 }
-const playerPal = () => ({ ...palOf(st.look), ...OUTFITS[st.outfit], ...wearPal() });
+const playerPal = () => ({ ...palOf(st.look), ...OUTFITS[st.outfit], ...wearPal(), bust: st.look.g === 'f' && age() >= 18 });
 dressPlayer = () => { player.spr = sheet(playerPal()); };
 function previewOf(item) {     // little thumbnail of the player wearing one item
   const w = { ...wearOf() }, probe = item.slot ? { ...w, [item.slot]: item.id } : item.hx !== undefined ? { ...w, hair: item.id } : { ...w, dye: item.idx };
@@ -53,7 +53,7 @@ function previewOf(item) {     // little thumbnail of the player wearing one ite
 }
 let wTab = 'top';
 function wardrobePanel(mode) {
-  const tabs = mode === 'salon' ? ['hair', 'dye'] : mode === 'fashion' ? ['top', 'bottom', 'shoes', 'hat', 'gl', 'acc'] : Object.keys(TABS);
+  const tabs = mode === 'salon' ? ['hair', 'dye'] : mode === 'fashion' ? ['look', 'top', 'bottom', 'shoes', 'hat', 'gl', 'acc'] : Object.keys(TABS);
   if (!tabs.includes(wTab)) wTab = tabs[0];
   openPanel(mode === 'salon' ? '💇 ร้านทำผม' : mode === 'fashion' ? '👗 ร้านเสื้อผ้า' : '👚 ตู้เสื้อผ้า', () => {
     const pv = el('canvas', { width: 24, height: 40 }); pv.getContext('2d').drawImage(sheet(playerPal())[0][0], 0, 0); pv.style.cssText = 'width:72px;height:120px;image-rendering:pixelated;align-self:center;background:#ffffff14;border-radius:10px';
@@ -65,6 +65,7 @@ function wardrobePanel(mode) {
     };
     if (wTab === 'hair') for (const hs of HAIRSTYLES) { const id = 'hair:' + hs.id, own = hs.price === 0 || owned(id), on = w.hair === hs.id || (!w.hair && (hs.id === st.look.hx || (!st.look.hx && hs.id === st.look.style)));
       rows.push(row(previewOf(hs), hs.n, hs.price ? (own ? 'มีแล้ว' : `฿${hs.price}`) : 'ฟรี', action(id, hs.price, on, () => { w.hair = hs.id; }, () => { delete w.hair; }))); }
+    else if (wTab === 'look') rows.push(...lookRows(shop));
     else if (wTab === 'dye') DYES.forEach((d, i) => rows.push(row(previewOf({ idx: i, hx: undefined }), `สีที่ ${i + 1}`, i < HAIR.length ? 'สีธรรมชาติ' : 'สีแฟนตาซี', action('dye:' + i, i < HAIR.length ? 0 : 60, w.dye === i, () => { w.dye = i; }, () => { delete w.dye; }))));
     else for (const id of WLIST[wTab]) { const it = WITEM[id]; if (!shop && !owned(id)) continue; rows.push(row(previewOf(it), it.n, shop && !owned(id) ? '' : '', action(id, it.price, w[wTab] === id, () => { w[wTab] = id; }, () => { delete w[wTab]; }))); }
     if (!rows.length) rows.push(el('div', { className: 'sub' }, 'ยังไม่มีอะไรเลย — ไปซื้อเสื้อผ้าที่ร้านเสื้อผ้า 👗'));
@@ -81,10 +82,11 @@ const TOPKEYS = Object.keys(TOPFX), HATKEYS = Object.keys(HATFX), GLKEYS = Objec
 const pickOf = (a, k) => a[(k * 7 + 3) % a.length];
 const randomWear = (p, k) => ({ ...(k % 2 ? { hx: pickOf(HAIRX, k).hx, style: pickOf(HAIRX, k).style, clip: 0 } : {}), ...(k % 3 ? { topS: pickOf(TOPKEYS, k) } : {}),
   ...(k % 4 === 1 ? { botS: pickOf(['shorts', 'cargo', 'slacks', 'leggings'], k) } : {}), ...(k % 5 === 2 ? { hatS: pickOf(HATKEYS, k), hatC: COLS[k % 10][1] } : {}), ...(k % 6 === 3 ? { glS: pickOf(GLKEYS, k) } : {}), ...(k % 7 === 4 ? { accS: 'scarf', accC: COLS[(k + 2) % 10][1] } : {}) });
+var npcWear = randomWear;   // fashion.js swaps in style-themed outfits
 const _makePeople = makePeople;
-makePeople = () => { _makePeople(); people.forEach((p, k) => { p.spr = sheet({ ...p.pal, ...randomWear(p, k) }); }); };
+makePeople = () => { _makePeople(); people.forEach((p, k) => { p.spr = sheet({ ...p.pal, ...npcWear(p, k), bust: p.g === 'f' && p.age >= 18 }); }); };
 const _makeFamily = makeFamily;
-makeFamily = () => { _makeFamily(); fam.forEach((p, k) => { p.spr = sheet({ ...palOf(st.parents[p.id].look), ...randomWear(p, k + 11) }); p.h.spr = p.spr; }); };
+makeFamily = () => { _makeFamily(); fam.forEach((p, k) => { p.spr = sheet({ ...palOf(st.parents[p.id].look), ...npcWear(p, k + 11), bust: st.parents[p.id].g === 'f' }); p.h.spr = p.spr; }); };
 ACH.push(['closet', '👗 แฟชั่นนิสต้า', 'เป็นเจ้าของเสื้อผ้า 20 ชิ้น', () => Object.keys(st.owned || {}).length >= 20], ['restyle', '💇 ลุคใหม่', 'เปลี่ยนทรงผมที่ร้านเสริมสวย', () => !!st.wear?.hair]);
 console.assert(Object.keys(WITEM).length >= 100, 'at least 100 clothing items');
 console.assert(HAIRSTYLES.length >= 20 && DYES.length >= 20, 'hair choices');

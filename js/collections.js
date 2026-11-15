@@ -74,7 +74,7 @@ function collectionApp() {
     for (const r of RECIPES) {
       const I = ITEMS[r.id], n = R[r.id] || 0, locked = lv('cook') < r.lv;
       out.push(row(n ? I.ic : locked ? '🔒' : '🍳', n ? I.n : `${I.n} (ยังไม่เคยทำ)`,
-        `ทำแล้ว ${n} ครั้ง${locked ? ` · ปลดล็อกที่ Lv ${r.lv}` : ''} · ขายได้ราว ฿${I.sell || 30} · วัตถุดิบ ${Object.entries(r.need).map(([k, v]) => `${ITEMS[k].ic}${v}`).join(' ')}`));
+        `ทำแล้ว ${n} ครั้ง${locked ? ` · ปลดล็อกที่ เลเวล ${r.lv}` : ''} · ขายได้ราว ฿${I.sell || 30} · วัตถุดิบ ${Object.entries(r.need).map(([k, v]) => `${ITEMS[k].ic}${v}`).join(' ')}`));
     }
   } else {
     const list = cTab === 'fish' ? FISHES : cTab === 'bug' ? BUGS : FOSSILS;

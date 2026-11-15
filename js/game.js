@@ -98,7 +98,7 @@ const RECIPES = [
 ];
 const SKILLS = { cook: ['ทำอาหาร', '🍳', 'สูตรใหม่ อาหารอิ่มขึ้น เลื่อนขั้นบาริสต้า'], logic: ['ตรรกะ', '🧠', 'งานฟรีแลนซ์ได้มากขึ้น เลื่อนขั้นออฟฟิศ'],
   charm: ['เสน่ห์', '💬', 'สนิทกับคนเร็วขึ้น เลื่อนขั้นร้านค้า'], fit: ['ฟิตเนส', '💪', 'เหนื่อยช้าลง'], art: ['ศิลปะ', '🎨', 'ภาพวาดขายได้แพงขึ้น'],
-  fish: ['ตกปลา', '🎣', 'ปลาหายากมีโอกาสมากขึ้น'], garden: ['ทำสวน', '🌱', 'Lv 3+ เก็บเกี่ยวได้ผลผลิตเพิ่ม'] };
+  fish: ['ตกปลา', '🎣', 'ปลาหายากมีโอกาสมากขึ้น'], garden: ['ทำสวน', '🌱', 'เลเวล 3+ เก็บเกี่ยวได้ผลผลิตเพิ่ม'] };
 const CORE_SKILLS = ['cook', 'logic', 'charm', 'fit', 'art'];
 const JOBS = {
   office: { n: 'พนักงานออฟฟิศ', at: 'ออฟฟิศ', start: 9, end: 17, weekdays: 1, skill: 'logic', titles: ['เด็กฝึกงาน', 'พนักงาน', 'หัวหน้าทีม', 'ผู้จัดการ', 'ผู้บริหาร'], pay: [120, 180, 260, 360, 500], req: [0, 2, 4, 6, 8], tasks: ['พิมพ์รายงาน', 'นำเสนองาน', 'ตอบอีเมลลูกค้า'] },
@@ -126,7 +126,7 @@ const FURN = {
   rug2: { n: 'พรมกลมสีฟ้า', w: 3, h: 2, price: 350, cf: 5, cat: 'decor', d: 'rug2', floor: 1 },
 };
 for (const k in FURN) FURN[k] = { w: 1, h: 1, cf: 0, tier: 1, d: FURN[k].cat, ...FURN[k] };
-const CATDESC = { bed: 'นอนฟื้นพลัง เกรดสูงได้ความสุขมากขึ้น', fridge: 'เก็บและกินอาหาร', stove: 'ทำอาหาร เกรดสูงได้ XP ×1.5 และอาหารอิ่มขึ้น', sink: 'ล้างหน้า',
+const CATDESC = { bed: 'นอนฟื้นพลัง เกรดสูงได้ความสุขมากขึ้น', fridge: 'เก็บและกินอาหาร', stove: 'ทำอาหาร เกรดสูงได้ประสบการณ์ ×1.5 และอาหารอิ่มขึ้น', sink: 'ล้างหน้า',
   shelf: 'อ่านหนังสือฝึกตรรกะ', tv: 'ดูทีวีเพิ่มความสุข', pc: 'ฟรีแลนซ์ เล่นเกม เรียนออนไลน์ ขายภาพ', sofa: 'นั่งพักฟื้นพลัง', wardrobe: 'เปลี่ยนชุด',
   tub: 'อาบน้ำ', plant: 'รดน้ำทุกวันจนออกดอก', easel: 'วาดภาพ ฝึกศิลปะ', gym: 'วิ่งฝึกฟิตเนส', mirror: 'ฝึกพูด เพิ่มเสน่ห์', piano: 'เล่นเปียโน ฝึกศิลปะ+เสน่ห์',
   aquarium: 'ดูปลาผ่อนคลาย', decor: 'ของตกแต่ง' };
@@ -645,7 +645,7 @@ function xp(s, n) {
   st.sk[s] = (st.sk[s] || 0) + amt; float('+' + amt + 'XP', COL.xp);
   const after = lv(s);
   if (after > before) {
-    toast(`⬆️ เลเวลอัป! ${SKILLS[s][1]} ${SKILLS[s][0]} Lv ${after}`);
+    toast(`⬆️ เลเวลอัป! ${SKILLS[s][1]} ${SKILLS[s][0]} เลเวล ${after}`);
     if (s === 'cook') for (const r of RECIPES) if (r.lv === after) toast(`📜 ปลดล็อกสูตร ${ITEMS[r.id].ic} ${ITEMS[r.id].n}`);
   }
 }
@@ -808,7 +808,7 @@ const perfNeed = l => 5 + l * 3;
 function checkPromo() {
   const J = JOBS[st.job.id], L = st.job.lv;
   if (L >= 4 || st.job.perf < perfNeed(L)) return;
-  if (lv(J.skill) < J.req[L + 1]) return setTimeout(() => toast(`📋 ผลงานพร้อมเลื่อนขั้น แต่ต้องมี ${SKILLS[J.skill][0]} Lv ${J.req[L + 1]}`), 900);
+  if (lv(J.skill) < J.req[L + 1]) return setTimeout(() => toast(`📋 ผลงานพร้อมเลื่อนขั้น แต่ต้องมี ${SKILLS[J.skill][0]} เลเวล ${J.req[L + 1]}`), 900);
   st.job.lv++; st.job.perf = 0; st.stats.promos++;
   setTimeout(() => toast(`🎉 เลื่อนขั้นเป็น ${J.titles[st.job.lv]}! ค่าจ้าง ฿${J.pay[st.job.lv]}/กะ`), 900);
 }
@@ -875,9 +875,9 @@ const ACH = [
   ['social', '🌟 ขวัญใจชาวเมือง', 'รู้จัก 10 คน (20+)', () => PEOPLE.filter(p => (st.rel[p.id]?.f || 0) >= 20).length >= 10],
   ['love', '💕 มีแฟนแล้ว', 'มีคนตอบรับเป็นแฟน', () => !!st.partner],
   ['chef', '👨‍🍳 เชฟมือใหม่', 'ทำอาหาร 10 จาน', () => st.stats.cooked >= 10],
-  ['allrec', '📜 ปลดล็อกทุกสูตร', 'ทำอาหาร Lv 8', () => lv('cook') >= 8],
-  ['skill5', '🎯 เก่งจริง', 'ทักษะใดก็ได้ Lv 5', () => Object.keys(SKILLS).some(s => lv(s) >= 5)],
-  ['allskill', '🌈 รอบด้าน', 'ทุกทักษะหลัก Lv 3', () => CORE_SKILLS.every(s => lv(s) >= 3)],
+  ['allrec', '📜 ปลดล็อกทุกสูตร', 'ทำอาหาร เลเวล 8', () => lv('cook') >= 8],
+  ['skill5', '🎯 เก่งจริง', 'ทักษะใดก็ได้ เลเวล 5', () => Object.keys(SKILLS).some(s => lv(s) >= 5)],
+  ['allskill', '🌈 รอบด้าน', 'ทุกทักษะหลัก เลเวล 3', () => CORE_SKILLS.every(s => lv(s) >= 3)],
   ['artist', '🎨 ศิลปิน', 'วาดภาพ 5 ภาพ', () => st.stats.paintings >= 5],
   ['decor', '🛋️ นักแต่งบ้าน', 'ซื้อเฟอร์นิเจอร์ 5 ชิ้น', () => st.stats.furnBought >= 5],
   ['comfy', '🏡 บ้านอบอุ่น', 'ความน่าอยู่ 50', () => comfort >= 50],
@@ -979,10 +979,10 @@ function furniPanel() {
   });
 }
 function cookPanel(tier) {
-  openPanel(`🍳 ทำอาหาร (ทักษะ Lv ${lv('cook')})`, () => RECIPES.map(r => {
+  openPanel(`🍳 ทำอาหาร (ทักษะ เลเวล ${lv('cook')})`, () => RECIPES.map(r => {
     const I = ITEMS[r.id], locked = lv('cook') < r.lv, ok = Object.entries(r.need).every(([k, n]) => have(k) >= n);
     const need = el('span', {}, ...Object.entries(r.need).map(([k, n]) => el('span', { className: have(k) >= n ? 'ok' : 'no' }, `${ITEMS[k].ic}${have(k)}/${n} `)));
-    return row(locked ? '🔒' : I.ic, locked ? `${I.n} (ปลดล็อกที่ Lv ${r.lv})` : I.n, need, btn('ทำ', () => cookDish(r, tier), locked || !ok));
+    return row(locked ? '🔒' : I.ic, locked ? `${I.n} (ปลดล็อกที่ เลเวล ${r.lv})` : I.n, need, btn('ทำ', () => cookDish(r, tier), locked || !ok));
   }));
 }
 function eatPanel() {
@@ -1021,7 +1021,7 @@ function journal(tab = jTab) {
     let body = [];
     if (jTab === 'skills') body = Object.entries(SKILLS).map(([s, [n, ic, eff]]) => {
       const l = lv(s), cur = (st.sk[s] || 0) - xpAt(l), need = xpAt(l + 1) - xpAt(l);
-      return row(ic, `${n} Lv ${l}`, el('div', {}, el('div', { className: 'bar' }, el('i', { style: `width:${l >= 10 ? 100 : cur / need * 100}%;background:${COL.xp}` })), `${l >= 10 ? 'เต็ม' : `${Math.floor(cur)}/${need} XP`} · ${eff}`));
+      return row(ic, `${n} เลเวล ${l}`, el('div', {}, el('div', { className: 'bar' }, el('i', { style: `width:${l >= 10 ? 100 : cur / need * 100}%;background:${COL.xp}` })), `${l >= 10 ? 'เต็ม' : `${Math.floor(cur)}/${need} แต้ม`} · ${eff}`));
     });
     if (jTab === 'career') {
       if (!st.job) body = [el('div', { className: 'sub' }, 'ยังไม่มีงาน สมัครได้ที่ออฟฟิศ คาเฟ่ หรือมินิมาร์ท'),
@@ -1030,10 +1030,10 @@ function journal(tab = jTab) {
         const J = JOBS[st.job.id], L = st.job.lv;
         body = [row('💼', `${J.titles[L]} (${J.n})`, `ที่${J.at} · ${J.start}:00–${J.end}:00${J.weekdays ? ' จ-ศ' : ' ทุกวัน'} · ฿${J.pay[L]}/กะ`),
           L < 4 ? row('📈', `ผลงาน ${st.job.perf.toFixed(1)} / ${perfNeed(L)}`, el('div', {}, el('div', { className: 'bar' }, el('i', { style: `width:${Math.min(100, st.job.perf / perfNeed(L) * 100)}%;background:#7ee07e` })),
-            el('span', { className: lv(J.skill) >= J.req[L + 1] ? 'ok' : 'no' }, `เลื่อนขั้นเป็น${J.titles[L + 1]} ต้องมี${SKILLS[J.skill][0]} Lv ${J.req[L + 1]} (ตอนนี้ ${lv(J.skill)})`)))
+            el('span', { className: lv(J.skill) >= J.req[L + 1] ? 'ok' : 'no' }, `เลื่อนขั้นเป็น${J.titles[L + 1]} ต้องมี${SKILLS[J.skill][0]} เลเวล ${J.req[L + 1]} (ตอนนี้ ${lv(J.skill)})`)))
             : row('👑', 'ตำแหน่งสูงสุดแล้ว', ''),
           el('div', { className: 'sub' }, 'เคล็ดลับ: ความสุข 70+ ได้ค่าจ้างและผลงานเพิ่ม · ความสุขต่ำกว่า 30 ผลงานลด'),
-          el('div', { className: 'sec' }, 'เส้นทางอาชีพ'), ...J.titles.map((t, i) => row(i <= L ? '✅' : '⬜', t, `฿${J.pay[i]}/กะ · ${SKILLS[J.skill][0]} Lv ${J.req[i]}`))];
+          el('div', { className: 'sec' }, 'เส้นทางอาชีพ'), ...J.titles.map((t, i) => row(i <= L ? '✅' : '⬜', t, `฿${J.pay[i]}/กะ · ${SKILLS[J.skill][0]} เลเวล ${J.req[i]}`))];
       }
     }
     if (jTab === 'family') body = familyRows();
@@ -1058,7 +1058,7 @@ function drawMg() {
     el('div', {}, `รอบ ${Math.min(mg.round + 1, 3)}/3 : ${mg.task}`),
     el('div', { className: 'track' }, el('div', { className: 'zone', style: `left:${mg.z * 100}%;width:${mg.w * 100}%` }, el('i')), el('div', { className: 'mark', style: `left:${mg.pos * 100}%` })),
     el('div', { className: 'fb' }, mg.fb),
-    el('button', { textContent: 'กด! (E / Space)', onpointerdown: e => { e.preventDefault(); mgPress(); } }));
+    el('button', { textContent: 'กด! (E / สเปซบาร์)', onpointerdown: e => { e.preventDefault(); mgPress(); } }));
   mgEl.hidden = false;
 }
 

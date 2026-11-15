@@ -155,13 +155,13 @@ const _save12 = save; save = () => { if (scene === mine && player) { const px = 
 // ---- entrance + blacksmith ----
 town.statics.push({ k: 21 * T + 20, f() { const X = 4 * T, Y = 21 * T; R('#5a5a64', X - 2, Y + 4, 36, 30); R('#7a7a84', X - 2, Y + 4, 36, 3); R('#0a0810', X + 6, Y + 12, 20, 22); R('#8a5a34', X + 4, Y + 10, 3, 24); R('#8a5a34', X + 25, Y + 10, 3, 24); R('#8a5a34', X + 4, Y + 8, 24, 4); } });
 const GEARUP = { sword: [['copper', 5, 200], ['iron', 5, 400], ['silver', 5, 800], ['goldore', 5, 1500]], armor: [['copper', 4, 150], ['iron', 4, 350], ['silver', 4, 700], ['goldore', 4, 1300]], pick: [['copper', 3, 150], ['iron', 3, 350], ['silver', 3, 700]] };
-const upgrade = k => () => { const G = gear(), lvl = G[k], need = GEARUP[k][lvl]; if (!need) return say('อัปเกรดสูงสุดแล้ว!'); const [id, n, cost] = need; if (have(id) < n || st.money < cost) return say(`ต้องใช้ ${n}× ${ITEMS[id].n} และ ฿${cost}`); addItem(id, -n); st.money -= cost; G[k]++; toast(`🔨 อัปเกรด${{ sword: SWORDS[G.sword]?.[0], armor: `เกราะ Lv ${G.armor}`, pick: `อีเต้อ Lv ${G.pick}` }[k]} สำเร็จ!`); };
+const upgrade = k => () => { const G = gear(), lvl = G[k], need = GEARUP[k][lvl]; if (!need) return say('อัปเกรดสูงสุดแล้ว!'); const [id, n, cost] = need; if (have(id) < n || st.money < cost) return say(`ต้องใช้ ${n}× ${ITEMS[id].n} และ ฿${cost}`); addItem(id, -n); st.money -= cost; G[k]++; toast(`🔨 อัปเกรด${{ sword: SWORDS[G.sword]?.[0], armor: `เกราะ เลเวล ${G.armor}`, pick: `อีเต้อ เลเวล ${G.pick}` }[k]} สำเร็จ!`); };
 town.targets.push({ x: ENTRANCE.x, y: ENTRANCE.y, name: 'ทางเข้าเหมือง', get opts() {
   const G = gear(), o = [[`ลงเหมือง (ชั้น 1)`, () => { if (age() < 14) return say('ต้องอายุ 14 ปีขึ้นไปจึงจะลงเหมืองได้'); if (st.energy < 25) return say('เหนื่อยเกินไปสำหรับการลงเหมือง'); hp = maxHp(); enterMine(1); }]];
   for (let f = 5; f <= G.deep; f += 5) o.push([`ลิฟต์ไปชั้น ${f} 🛗`, () => { if (st.energy < 25) return say('เหนื่อยเกินไป'); hp = maxHp(); enterMine(f); }]);
   o.push([`⚔️ ดาบ: ${SWORDS[G.sword][0]} (พลังโจมตี ${SWORDS[G.sword][1]}) → ${GEARUP.sword[G.sword] ? `${GEARUP.sword[G.sword][1]}× ${ITEMS[GEARUP.sword[G.sword][0]].n} ฿${GEARUP.sword[G.sword][2]}` : 'สูงสุด'}`, upgrade('sword')],
-    [`🛡️ เกราะ Lv ${G.armor} → ${GEARUP.armor[G.armor] ? `${GEARUP.armor[G.armor][1]}× ${ITEMS[GEARUP.armor[G.armor][0]].n} ฿${GEARUP.armor[G.armor][2]}` : 'สูงสุด'}`, upgrade('armor')],
-    [`⛏️ อีเต้อ Lv ${G.pick} → ${GEARUP.pick[G.pick] ? `${GEARUP.pick[G.pick][1]}× ${ITEMS[GEARUP.pick[G.pick][0]].n} ฿${GEARUP.pick[G.pick][2]}` : 'สูงสุด'}`, upgrade('pick')],
+    [`🛡️ เกราะ เลเวล ${G.armor} → ${GEARUP.armor[G.armor] ? `${GEARUP.armor[G.armor][1]}× ${ITEMS[GEARUP.armor[G.armor][0]].n} ฿${GEARUP.armor[G.armor][2]}` : 'สูงสุด'}`, upgrade('armor')],
+    [`⛏️ อีเต้อ เลเวล ${G.pick} → ${GEARUP.pick[G.pick] ? `${GEARUP.pick[G.pick][1]}× ${ITEMS[GEARUP.pick[G.pick][0]].n} ฿${GEARUP.pick[G.pick][2]}` : 'สูงสุด'}`, upgrade('pick')],
     ['🧪 ยาฟื้นพลัง ฿50', () => { if (st.money < 50) return say('เงินไม่พอ'); st.money -= 50; addItem('potion'); say('ใส่ยาฟื้นพลังในกระเป๋าแล้ว (ดื่มอัตโนมัติเมื่อพลังใกล้หมด)'); }]);
   if (G.cleared) o.push(['🏆 เหมืองถูกพิชิตแล้ว', () => say('คุณพิชิตเหมืองครบ 30 ชั้นแล้ว! ราชาแห่งเหมืองพ่ายแพ้ และหัวใจเหมืองเป็นของคุณ')]);
   return o;

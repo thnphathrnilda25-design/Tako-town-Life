@@ -56,7 +56,7 @@ function startGig(g) {
     fx({ money: pay, energy: -15, mood: 2 }); xp(g.skill, 16 + 4 * lv(g.skill)); tick(60);
     const m = gigToday(); if (m && m.id === g.id) m.done = true;   // the day may roll over during the mini-game
     st.stats.gigs = (st.stats.gigs || 0) + 1;
-    say(`งานพิเศษเสร็จ! ได้ ฿${pay} · ${SKILLS[g.skill][0]} +XP`);
+    say(`งานพิเศษเสร็จ! ได้ ฿${pay} · ${SKILLS[g.skill][0]} +ประสบการณ์`);
     toast('🧰 งานพิเศษสำเร็จ'); checkAch(); save();
   });
 }
@@ -110,7 +110,7 @@ function careerApp() {
       const need = perfNeed(L), ok = lv(J.skill) >= J.req[L + 1];
       out.push(row('📈', `ผลงาน ${st.job.perf.toFixed(1)} / ${need}`,
         el('div', {}, el('div', { className: 'bar' }, el('i', { style: `width:${Math.min(100, st.job.perf / need * 100)}%;background:#7ee07e` })),
-          `${SKILLS[J.skill][0]} Lv ${lv(J.skill)}/${J.req[L + 1]}${ok ? ' ✅' : ' ⬜'}`)));
+          `${SKILLS[J.skill][0]} เลเวล ${lv(J.skill)}/${J.req[L + 1]}${ok ? ' ✅' : ' ⬜'}`)));
     } else out.push(row('👑', 'ตำแหน่งสูงสุดแล้ว', 'ยังทำงานต่อได้เรื่อย ๆ'));
     out.push(el('div', { style: 'display:flex;gap:6px;flex-wrap:wrap' },
       btn('📖 เส้นทางอาชีพ', () => { closePanel(); journal('career'); }),

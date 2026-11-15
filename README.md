@@ -26,6 +26,7 @@ Then open `http://localhost:8765/pixel-town-32.html`.
 | `js/shops.js` | Extra shops and buildings, fishing. |
 | `js/pets.js` | Pets, community garden. |
 | `js/wardrobe.js` | 138 clothing items, hairstyles, dyes, fashion shop, salon, closet. |
+| `js/fashion.js` | Style looks (drip, old money, kid, jacket, vintage, minimal, emo): 13 hairstyles, 60 curated items, full-look sets at 15% off, townsfolk dressed by style. Adult women get a `bust` palette flag (shading only). |
 | `js/minis.js` | Mini-games: timing bar, quiz, Simon, dodge runner, memory, dance. |
 | `js/anim.js` | Activity animations and progress bar. Wraps the furniture and town actions. |
 | `js/love.js` | Dating, proposals, weddings, children, playing as your child. |
@@ -54,9 +55,10 @@ Then open `http://localhost:8765/pixel-town-32.html`.
 `pixel-town-32.html` loads the modules in this order:
 
 ```
-people, game, wearart, life, seasons, school, shops, pets, wardrobe, minis, anim,
-love, phone, walk, dialog, events, audio, collect, biz, quests, adventure, mayor,
-talkbox, goals, wallet, lively, homes, family, collections, career, system
+people, game, mapart, wearart, life, seasons, school, shops, pets, wardrobe, fashion,
+minis, anim, love, phone, walk, dialog, events, audio, collect, biz, quests, adventure,
+mayor, talkbox, goals, wallet, lively, homes, family, collections, career, housing,
+social, memory, realism, system
 ```
 
 Modules are plain scripts that share one global scope. A later module can replace or wrap an earlier one's functions (for example `talk`, `say`, `updatePerson`, `personOpts`, `seasonTick`, `lifeTick`, `drawEnt`, `update`). Changing the order will break things. Add new modules before `system.js`, and register them in the array at the bottom of the HTML.

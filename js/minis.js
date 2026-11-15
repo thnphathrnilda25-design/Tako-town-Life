@@ -19,7 +19,7 @@ MINI.bar = {   // stop the marker inside the green zone, once per step
   view(m) {
     m.mark = el('div', { className: 'mark', style: `left:${m.pos * 100}%` }); m.fbEl = el('div', { className: 'fb', textContent: m.fb });
     shell(m.title, el('div', {}, `${m.steps[Math.min(m.i, m.steps.length - 1)][1]} ${m.steps[Math.min(m.i, m.steps.length - 1)][0]} (${Math.min(m.i + 1, m.steps.length)}/${m.steps.length})`),
-      el('div', { className: 'track' }, el('div', { className: 'zone', style: `left:${m.z * 100}%;width:${m.w * 100}%` }, el('i')), m.mark), m.fbEl, el('button', { textContent: 'ตอนนี้! (E / Space)', onpointerdown: e => { e.preventDefault(); mgPress(); } }));
+      el('div', { className: 'track' }, el('div', { className: 'zone', style: `left:${m.z * 100}%;width:${m.w * 100}%` }, el('i')), m.mark), m.fbEl, el('button', { textContent: 'ตอนนี้! (E / สเปซบาร์)', onpointerdown: e => { e.preventDefault(); mgPress(); } }));
   },
   update(m, dt) {
     if (m.wait > 0) { if ((m.wait -= dt) <= 0) { if (m.i >= m.steps.length) return endMini(m.score / m.steps.length); m.fb = ''; m.z = .05 + rnd() * (.9 - m.w); this.view(m); } return; }

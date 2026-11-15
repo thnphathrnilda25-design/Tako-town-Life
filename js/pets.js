@@ -79,6 +79,6 @@ function petDaily() {
   for (let d = day() - gone; d < day(); d++) for (const c of Object.values(st.garden || {})) if (!ready(c) && seasonOf(d).i !== 3 && (c.wet === d || ['rain', 'storm'].includes(weatherOf(d)))) c.grow++;
 }
 const _seasonTick = seasonTick; seasonTick = () => { _seasonTick(); petDaily(); };
-ACH.push(['farmer', '🌻 มือทอง', 'ทักษะทำสวน Lv 3', () => lv('garden') >= 3], ['petlover', '🐾 คนรักสัตว์', 'เลี้ยงสัตว์ 2 ตัว', () => Object.keys(st.pets || {}).length >= 2]);
+ACH.push(['farmer', '🌻 มือทอง', 'ทักษะทำสวน เลเวล 3', () => lv('garden') >= 3], ['petlover', '🐾 คนรักสัตว์', 'เลี้ยงสัตว์ 2 ตัว', () => Object.keys(st.pets || {}).length >= 2]);
 console.assert(Object.keys(CROPS).every(id => ITEMS[id] && ITEMS[CROPS[id].crop]), 'crop table');
 console.assert(GARDEN.every(([x, y]) => !solidAt(town, x * T + 16, y * T + 22)), 'garden plots must be walkable');
