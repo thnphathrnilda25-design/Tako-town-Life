@@ -197,6 +197,6 @@ addEventListener('error', e => showErr(`${e.message} @ ${(e.filename || '').spli
 addEventListener('unhandledrejection', e => showErr(String(e.reason?.message || e.reason)));
 </script>
 <script>/* load order matters; the timestamp stops stale cached modules */
-['people', 'game', 'mapart', 'wearart', 'life', 'seasons', 'school', 'shops', 'pets', 'wardrobe', 'fashion', 'minis', 'anim', 'love', 'phone', 'walk', 'dialog', 'events', 'audio', 'collect', 'biz', 'quests', 'adventure', 'mayor', 'talkbox', 'goals', 'wallet', 'lively', 'homes', 'family', 'collections', 'career', 'housing', 'social', 'memory', 'realism', 'system'].forEach(n => document.write('<script src="js/' + n + '.js?' + Date.now() + '"><\/script>'));</script>
+['people', 'game', 'mapart', 'wearart', 'life', 'seasons', 'school', 'shops', 'pets', 'wardrobe', 'fashion', 'minis', 'anim', 'love', 'phone', 'walk', 'dialog', 'events', 'audio', 'collect', 'biz', 'quests', 'adventure', 'mayor', 'talkbox', 'goals', 'wallet', 'lively', 'homes', 'family', 'collections', 'career', 'housing', 'social', 'memory', 'realism', 'townlife', 'nightlife', 'system'].forEach(n => document.write('<script src="js/' + n + '.js?' + Date.now() + '"><\/script>'));</script>
 </body>
 </html>

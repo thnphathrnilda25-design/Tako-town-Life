@@ -1207,7 +1207,7 @@ function findTarget() {
   scene.targets.forEach(t => t.opts.length && consider(t));
   if (scene === town) {
     for (const p of people) if (!p.hidden) consider({ x: p.x, y: p.y, name: `${p.n} (${relName(p.id, relOf(p.id).f)})`, get opts() { return personOpts(p); } });
-    for (const n of folks) consider({ x: n.x, y: n.y, name: 'ชาวเมือง', opts: [['ทักทาย', () => {
+    for (const n of folks) if (!n.away) consider({ x: n.x, y: n.y, name: 'ชาวเมือง', opts: [['ทักทาย', () => {
       n.dir = faceTo(n, player);
       if (n.talked !== day()) { n.talked = day(); fx({ mood: 3 }); xp('charm', 5); }
       say('"สวัสดีครับ/ค่ะ อากาศดีนะวันนี้"'); tick(5);
@@ -1256,7 +1256,7 @@ function render() {
   ctx.setTransform(1, 0, 0, 1, -cx, -cy);
   if (sc.drawBg) sc.drawBg(); else ctx.drawImage(sc.ground, 0, 0);
   if (sc === town) { const t = now() / 300 | 0; for (let i = 0; i < 4; i++) R('#e8f8ff', (12 * T + ((t * 7 + i * 37) % 120)) | 0, 23 * T + ((t * 13 + i * 23) % 88), 3, 1); }
-  const ents = sc === town ? [player, ...folks, ...people.filter(p => !p.hidden)] : typeof mine !== 'undefined' && sc === mine ? [player, ...mine.ents] : typeof nRoom !== 'undefined' && sc === nRoom ? [player, ...visitEnts()] : [player, ...petEnts(sc), ...homeFamily()];
+  const ents = sc === town ? [player, ...folks.filter(f => !f.away), ...people.filter(p => !p.hidden), ...(typeof townExtras === 'function' ? townExtras() : [])] : typeof mine !== 'undefined' && sc === mine ? [player, ...mine.ents] : typeof nRoom !== 'undefined' && sc === nRoom ? [player, ...visitEnts()] : [player, ...petEnts(sc), ...homeFamily()];
   const list = sc.statics.concat(ents.map(e => ({ k: e.y, f: () => drawEnt(e) })));
   if (sc === town) for (const c of CARS) list.push({ k: c.y, f: () => drawCar(c) });
   list.sort((a, b) => a.k - b.k).forEach(d => d.f());

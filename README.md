@@ -26,6 +26,8 @@ Then open `http://localhost:8765/pixel-town-32.html`.
 | `js/shops.js` | Extra shops and buildings, fishing. |
 | `js/pets.js` | Pets, community garden. |
 | `js/wardrobe.js` | 138 clothing items, hairstyles, dyes, fashion shop, salon, closet. |
+| `js/townlife.js` | NPC real hours (home by dark, staggered bedtimes, lit windows only while awake), needs (hunger/energy/fun), shop shifts (shop closed with no staff; one night clerk keeps the mart 24h), weather reactions, friends/couples walk together, readable chat bubbles, NPCs remark on you, NPC dating/break-ups/weddings, birthday wishes, favours, good-night texts, 📰 news app. |
+| `js/nightlife.js` | Night market (18:00–00:30), café bar after 19:00, stargazing, fireflies; weekly events (Wed quiz, Fri movie, Sat farmers' market, Sun park concert); Valentine's, music fest, Loy Krathong on the river, Christmas; police patrols, wanted level, arrests/fines/jail, shoplifting, night pickpockets; new weather visuals (slanted rain, splashes, lightning, fog, cloud shadows, sun rays, vignette). |
 | `js/fashion.js` | Style looks (drip, old money, kid, jacket, vintage, minimal, emo): 13 hairstyles, 60 curated items, full-look sets at 15% off, townsfolk dressed by style. Adult women get a `bust` palette flag (shading only). |
 | `js/minis.js` | Mini-games: timing bar, quiz, Simon, dodge runner, memory, dance. |
 | `js/anim.js` | Activity animations and progress bar. Wraps the furniture and town actions. |

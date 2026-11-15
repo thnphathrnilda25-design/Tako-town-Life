@@ -96,7 +96,7 @@ updatePerson = (p, dt) => {
   if (!p.path) { p.stuck = (p.stuck || 0) + dt; if (p.stuck > 4) { p.x = t.x; p.y = t.y; p.stuck = 0; } animate(p, false, dt); return; }
   const w = p.path[0] || t, dx = w.x - p.x, dy = w.y - p.y, d = Math.hypot(dx, dy);
   if (d < 2) { p.path.shift(); return; }
-  const sp = Math.min(d, (p.flee ? 70 : 45) * dt), ox = p.x, oy = p.y;
+  const sp = Math.min(d, (p.flee || p.rush ? 70 : 45) * dt), ox = p.x, oy = p.y;   // rush: running for cover in the rain
   move(town, p, dx / d * sp, 0); move(town, p, 0, dy / d * sp);
   p.dir = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 2 : 3) : (dy < 0 ? 1 : 0);
   const moved = Math.hypot(p.x - ox, p.y - oy) > .01; animate(p, moved, dt);
@@ -117,7 +117,7 @@ function drawPersonProp(e) {
   else if (e.prop === 'book') { R('#2a1a2e', x + 8, y - 18, 8, 6); R('#fff4e8', x + 9, y - 17, 3, 4); R('#fff4e8', x + 12, y - 17, 3, 4); }
   else if (e.prop === 'folder') { R('#3a5ad8', x + 9, y - 17, 7, 6); R('#fff4e8', x + 10, y - 16, 5, 2); }
   else if (e.prop === 'phone') { R('#2a1a2e', x + 10, y - 17, 4, 7); R('#9ad4f0', x + 11, y - 16, 2, 4); }
-  if (e.chatWith && ((now() / 450 | 0) + k) % 2 === 0) {
+  if (e.chatWith && !e.saying && ((now() / 450 | 0) + k) % 2 === 0) {   // townlife.js shows real words instead of dots near you
     R('#2a1a2e', x + 7, y - 43, 13, 10); R('#fffdf4', x + 8, y - 42, 11, 8);
     for (let i = 0; i < 3; i++) R('#6a5a7a', x + 10 + i * 3, y - 39, 2, 2);
   }

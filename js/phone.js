@@ -117,7 +117,7 @@ APP.map = () => {
 APP.cal = () => {
   const s = seasonOf(), cells = [], fest = [];
   for (let d = 1; d <= 7; d++) { const gd = Math.floor((day() - 1) / 7) * 7 + d, f = festival(gd), hit = gd === day();
-    cells.push(row(hit ? '👉' : '📆', `${SEASONS[s.i][0]} วันที่ ${d} (วันที่ ${gd})${f ? ` — ${f.ic} ${f.n}` : ''}`, `${WX_ICON[weatherOf(gd)]} ${weatherOf(gd)}${d === 7 ? ' · 📄 วันสอบ' : ''}${(gd - 1) % YEAR === 0 ? ' · 🎂 วันเกิด' : ''}${ph().meet && ph().meet.d === gd ? ' · 🤝 นัดเจอ' : ''}`)); }
+    cells.push(row(hit ? '👉' : '📆', `${SEASONS[s.i][0]} วันที่ ${d} (วันที่ ${gd})${f ? ` — ${f.ic} ${f.n}` : ''}`, `${WX_ICON[weatherOf(gd)]} ${WXN[weatherOf(gd)] || ''}${d === 7 ? ' · 📄 วันสอบ' : ''}${(gd - 1) % YEAR === 0 ? ' · 🎂 วันเกิด' : ''}${ph().meet && ph().meet.d === gd ? ' · 🤝 นัดเจอ' : ''}`)); }
   return [el('div', { className: 'sec' }, `${SEASONS[s.i][1]} ${SEASONS[s.i][0]} — ปีที่ ${Math.floor((day() - 1) / YEAR) + 1}`), ...cells];
 };
 APP.game = () => {
