@@ -3,11 +3,14 @@ const T = 32;
 const cv = document.getElementById('c'), ctx = cv.getContext('2d');
 let VW, VH;
 function resize() {
-  const s = Math.max(1, Math.round(Math.min(innerWidth, innerHeight) / 380));
-  VW = cv.width = Math.ceil(innerWidth / s); VH = cv.height = Math.ceil(innerHeight / s);
+  // visible height, not 100vh: on phones 100vh runs under the browser toolbars and hides bottom buttons
+  const w = innerWidth, h = Math.round(visualViewport?.height || innerHeight);
+  document.documentElement.style.setProperty('--vh', h + 'px');
+  const s = Math.max(Math.min(w, h) < 500 ? 2 : 1, Math.round(Math.min(w, h) / 380));   // phones get 2x so people are not tiny
+  VW = cv.width = Math.ceil(w / s); VH = cv.height = Math.ceil(h / s);
   ctx.imageSmoothingEnabled = false;
 }
-addEventListener('resize', resize); resize();
+addEventListener('resize', resize); visualViewport?.addEventListener('resize', resize); resize();
 
 // ================= drawing primitives (g = current target) =================
 let g = ctx;
@@ -940,13 +943,13 @@ function drawHud() {
 }
 function openMenu(name, opts) {
   closePanel();
-  menuEl.replaceChildren(el('h3', { textContent: name }),
+  menuEl.replaceChildren(el('h3', { textContent: name }, el('button', { className: 'x', textContent: '✕', title: 'ปิด', onclick: closeMenu })),
     ...opts.map(([t, fn], i) => el('button', { textContent: `${i + 1}. ${t}`, onclick: () => { closeMenu(); fn(); } })),
     el('button', { className: 'close', textContent: 'ปิด (Esc)', onclick: closeMenu }));
   menuEl.hidden = false; menuOpen = true; keys.clear(); menuEl.querySelector('button').focus();
 }
 function closeMenu() { menuEl.hidden = true; menuOpen = false; }
-function openPanel(title, build) { closeMenu(); panelBuild = () => { panelEl.replaceChildren(el('h3', { textContent: title }), el('div', { className: 'body' }, build()), el('button', { className: 'close', textContent: 'ปิด (Esc)', onclick: closePanel })); }; panelBuild(); panelEl.hidden = false; panelOpen = true; keys.clear(); }
+function openPanel(title, build) { closeMenu(); panelBuild = () => { panelEl.replaceChildren(el('h3', { textContent: title }, el('button', { className: 'x', textContent: '✕', title: 'ปิด', onclick: closePanel })), el('div', { className: 'body' }, build()), el('button', { className: 'close', textContent: 'ปิด (Esc)', onclick: closePanel })); }; panelBuild(); panelEl.hidden = false; panelOpen = true; keys.clear(); }
 function refreshPanel() { if (panelOpen) { const sc = panelEl.querySelector('.body')?.scrollTop; panelBuild(); const b = panelEl.querySelector('.body'); if (b) b.scrollTop = sc; } }
 function closePanel() { panelEl.hidden = true; panelOpen = false; }
 const row = (ic, name, sub, ...right) => el('div', { className: 'item' }, el('div', { className: 'ic' }, ic), el('div', {}, el('div', {}, name), sub ? el('div', { className: 'sub' }, sub) : null), el('div', {}, ...right));
@@ -1108,7 +1111,7 @@ function decoTap(tx, ty) {
 }
 let cam = { x: 0, y: 0 };
 function toTile(e) { const r = cv.getBoundingClientRect(); return [Math.floor(((e.clientX - r.left) / r.width * cv.width + cam.x) / T), Math.floor(((e.clientY - r.top) / r.height * cv.height + cam.y) / T)]; }
-cv.addEventListener('pointerdown', e => { if (deco.on) decoTap(...toTile(e)); });
+cv.addEventListener('pointerdown', e => { if (panelOpen) return closePanel(); if (menuOpen && !(typeof TK !== 'undefined' && TK)) return closeMenu(); if (deco.on) decoTap(...toTile(e)); });   // tap outside a window closes it
 cv.addEventListener('pointermove', e => { deco.hover = deco.on ? toTile(e) : null; });
 
 // ---- input ----
