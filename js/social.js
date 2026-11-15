@@ -40,37 +40,37 @@ drawEnt = e => {
 const relF = (p, d) => { const r = relOf(p.id); r.f = Math.max(0, Math.min(100, r.f + d)); return r; };
 const relH = (p, d) => { const r = relOf(p.id); r.h = Math.max(0, Math.min(100, (r.h || 0) + d)); return r; };
 const mem = (p, kind, v, text) => typeof remember === 'function' && remember(p.id, kind, v, text);
-function reply(p, text, expr) { talk(p); setTimeout(() => line(`${p.n}: "${text}"`, expr, () => cont(p)), 30); }
+function npcReply(p, text, expr) { talk(p); setTimeout(() => line(`${p.n}: "${text}"`, expr, () => cont(p)), 30); }
 const partnerOf = p => p.id === st.partner || p.id === st.spouse || p.id === st.cohab;
 const ACTS16 = [
-  ['hug', '🤗 กอด', 'love', 1.4, p => { const ok = partnerOf(p) || relOf(p.id).f >= 30; relF(p, ok ? 4 : -2); fx({ mood: ok ? 8 : -2 }); mem(p, 'hug', ok ? 1 : -1, ok ? 'กอดกัน' : 'กอดโดยไม่ทันตั้งตัว'); reply(p, ok ? 'อบอุ่นจัง~' : 'เอ่อ… เรายังไม่สนิทขนาดนั้นนะ', ok ? 'happy' : 'sad'); }],
-  ['high5', '✋ ไฮไฟว์', 'star', 1, p => { relF(p, 2); fx({ mood: 4 }); mem(p, 'high5', 1, 'ไฮไฟว์'); reply(p, 'เย้! 🙌', 'happy'); }],
-  ['hold', '🤝 จับมือ', 'love', 1.4, p => { const ok = partnerOf(p) || relOf(p.id).f >= 70; relF(p, ok ? 3 : -3); fx({ mood: ok ? 6 : -2 }); mem(p, 'hold', ok ? 1 : -1, 'จับมือ'); reply(p, ok ? 'มืออุ่นจัง' : 'ขอโทษนะ… ไม่ค่อยสะดวก', ok ? 'happy' : 'sad'); }],
+  ['hug', '🤗 กอด', 'love', 1.4, p => { const ok = partnerOf(p) || relOf(p.id).f >= 30; relF(p, ok ? 4 : -2); fx({ mood: ok ? 8 : -2 }); mem(p, 'hug', ok ? 1 : -1, ok ? 'กอดกัน' : 'กอดโดยไม่ทันตั้งตัว'); npcReply(p, ok ? 'อบอุ่นจัง~' : 'เอ่อ… เรายังไม่สนิทขนาดนั้นนะ', ok ? 'happy' : 'sad'); }],
+  ['high5', '✋ ไฮไฟว์', 'star', 1, p => { relF(p, 2); fx({ mood: 4 }); mem(p, 'high5', 1, 'ไฮไฟว์'); npcReply(p, 'เย้! 🙌', 'happy'); }],
+  ['hold', '🤝 จับมือ', 'love', 1.4, p => { const ok = partnerOf(p) || relOf(p.id).f >= 70; relF(p, ok ? 3 : -3); fx({ mood: ok ? 6 : -2 }); mem(p, 'hold', ok ? 1 : -1, 'จับมือ'); npcReply(p, ok ? 'มืออุ่นจัง' : 'ขอโทษนะ… ไม่ค่อยสะดวก', ok ? 'happy' : 'sad'); }],
   ['kiss', '💋 หอมแก้ม / จูบ', 'love', 1.6, p => {
     if (age() < 18 || p.age < 18) return say('ทำไม่ได้: ต้องเป็นผู้ใหญ่ทั้งสองคน');
-    if (partnerOf(p)) { relF(p, 5); fx({ mood: 15 }); mem(p, 'kiss', 2, 'จูบ'); return reply(p, 'รักนะ 💕', 'happy'); }
-    if (relOf(p.id).f >= 85 && p.date && !st.partner) { st.partner = p.id; relF(p, 5); fx({ mood: 25 }); toast(`💕 ${p.n} ตอบรับ! เป็นแฟนกันแล้ว`); mem(p, 'kiss', 2, 'จูบแรก'); return reply(p, 'จริงๆ ฉันก็รอให้เธอทำแบบนี้อยู่นะ…', 'happy'); }
-    relH(p, 15); relF(p, -12); fx({ mood: -10 }); mem(p, 'kiss', -2, 'จูบโดยไม่ยินยอม'); reply(p, 'ทำอะไรน่ะ! อย่ามาทำแบบนี้!', 'angry');
+    if (partnerOf(p)) { relF(p, 5); fx({ mood: 15 }); mem(p, 'kiss', 2, 'จูบ'); return npcReply(p, 'รักนะ 💕', 'happy'); }
+    if (relOf(p.id).f >= 85 && p.date && !st.partner) { st.partner = p.id; relF(p, 5); fx({ mood: 25 }); toast(`💕 ${p.n} ตอบรับ! เป็นแฟนกันแล้ว`); mem(p, 'kiss', 2, 'จูบแรก'); return npcReply(p, 'จริงๆ ฉันก็รอให้เธอทำแบบนี้อยู่นะ…', 'happy'); }
+    relH(p, 15); relF(p, -12); fx({ mood: -10 }); mem(p, 'kiss', -2, 'จูบโดยไม่ยินยอม'); npcReply(p, 'ทำอะไรน่ะ! อย่ามาทำแบบนี้!', 'angry');
   }],
-  ['comfort', '🫂 ปลอบใจ', 'tear', 1.4, p => { const sad = mindOf(p)[2] === 'sad'; relF(p, sad ? 6 : 1); fx({ mood: 4 }); mem(p, 'comfort', 1, 'ปลอบใจ'); reply(p, sad ? 'ขอบคุณนะ… รู้สึกดีขึ้นเยอะเลย' : 'ฉันโอเคนะ แต่ขอบคุณที่เป็นห่วง', sad ? 'happy' : 'neutral'); }],
-  ['cry', '😢 ร้องไห้ระบาย', 'tear', 1.8, p => { const ok = relOf(p.id).f >= 40; fx({ mood: ok ? 15 : 3 }); if (typeof stressAdd === 'function') stressAdd(ok ? -15 : -3); relF(p, ok ? 3 : -1); mem(p, 'cry', ok ? 1 : 0, 'ร้องไห้ให้ฟัง'); reply(p, ok ? 'ไม่เป็นไรนะ ฉันอยู่ตรงนี้' : 'เอ่อ… ไม่เป็นไรใช่ไหม?', ok ? 'sad' : 'neutral'); }],
-  ['tickle', '😆 จั๊กจี้', 'spark', 1.2, p => { const ok = relOf(p.id).f >= 40; relF(p, ok ? 3 : -4); fx({ mood: ok ? 6 : -2 }); reply(p, ok ? 'ฮ่าๆๆ พอแล้ว!' : 'หยุดนะ ไม่ตลก', ok ? 'happy' : 'angry'); }],
-  ['dance', '💃 ชวนเต้นรำ', 'note', 2, p => { const ok = relOf(p.id).f >= 20; relF(p, ok ? 3 : 0); fx({ mood: ok ? 10 : 2, energy: -4 }); tick(20); mem(p, 'dance', ok ? 1 : 0, 'เต้นรำด้วยกัน'); reply(p, ok ? 'สนุกจัง! เต้นเก่งนะเนี่ย' : 'อ่า… ฉันเต้นไม่เป็นหรอก', ok ? 'happy' : 'neutral'); }],
-  ['snack', '🍪 แบ่งขนม', 'spark', 1, p => { const id = Object.keys(st.inv).find(i => ITEMS[i].food); if (!id) return say('ไม่มีของกินในกระเป๋า'); addItem(id, -1); const liked = p.love?.includes(id) || p.like?.includes(id); relF(p, liked ? 7 : 4); mem(p, 'snack', 1, `แบ่ง${ITEMS[id].n}ให้`); reply(p, liked ? `${ITEMS[id].n}! ของโปรดเลย ขอบคุณ!` : 'ขอบคุณนะ อร่อยดี', 'happy'); }],
-  ['eat', '🍜 ชวนไปกินข้าว ฿80', 'spark', 1.6, p => { if (st.money < 80) return say('เงินไม่พอ'); fade(() => { st.money -= 80; relF(p, 5); fx({ food: 40, mood: 10 }); tick(60); mem(p, 'eat', 1, 'กินข้าวด้วยกัน'); reply(p, 'อิ่มอร่อยมาก ไว้ไปอีกนะ!', 'happy'); }, 600); }],
-  ['walk', '🚶 ชวนเดินเล่น', 'spark', 1.8, p => { relF(p, 3); fx({ mood: 5, energy: -3 }); tick(30); mem(p, 'walk', 1, 'เดินเล่นด้วยกัน'); reply(p, 'อากาศดีเนอะ เดินคุยกันแบบนี้ชอบจัง', 'happy'); }],
-  ['outfit', '👗 ชมชุดที่ใส่', 'spark', 1, p => { const ok = (p.trait !== 'grumpy'); relF(p, ok ? 3 : 0); xp('charm', 5); reply(p, ok ? 'จริงเหรอ! เพิ่งซื้อมาเลย' : 'ก็แค่ชุดธรรมดา', ok ? 'happy' : 'neutral'); }],
-  ['advice', '🗣️ ขอคำปรึกษา', 'spark', 1.2, p => { if (typeof stressAdd === 'function') stressAdd(-8); relF(p, 2); tick(20); reply(p, ['ลองพักผ่อนให้พอ แล้วค่อยคิดใหม่นะ', 'ทำทีละอย่าง ไม่ต้องรีบ', 'ถ้าเหนื่อยก็คุยกับเพื่อนบ้างนะ', 'เก็บเงินไว้บ้าง อนาคตจะได้สบาย'][(p.k + day()) % 4], 'neutral'); }],
-  ['rps', '✊ เป่ายิ้งฉุบ', 'star', .8, p => { const w = Math.random(); relF(p, 1); fx({ mood: 3 }); reply(p, w < .33 ? 'ฉันชนะ! 😜' : w < .66 ? 'เสมอ! อีกรอบ!' : 'โอ๊ย แพ้ซะได้', w < .66 ? 'happy' : 'sad'); }],
-  ['prank', '👻 แกล้งหลอก', 'sweat', 1, p => { const ok = p.trait === 'cheerful' || relOf(p.id).f >= 60; relF(p, ok ? 3 : -5); if (!ok) relH(p, 5); mem(p, 'prank', ok ? 1 : -1, 'โดนแกล้ง'); reply(p, ok ? 'ว้าย! ฮ่าๆ แสบนัก!' : 'ไม่ตลกเลยนะ!', ok ? 'happy' : 'angry'); }],
-  ['argue', '😤 ทะเลาะ', 'anger', 1.4, p => { relF(p, -6); relH(p, 8); fx({ mood: -6 }); if (typeof stressAdd === 'function') stressAdd(6); mem(p, 'argue', -1, 'ทะเลาะกัน'); reply(p, 'เธอนี่มันไม่มีเหตุผลเลย!', 'angry'); }],
-  ['push', '🫸 ผลัก', 'anger', 1, p => { relF(p, -12); relH(p, 18); fx({ mood: -4 }); mem(p, 'push', -2, 'ผลัก'); reply(p, 'ผลักทำไม! อย่ามายุ่งกับฉัน!', 'angry'); }],
+  ['comfort', '🫂 ปลอบใจ', 'tear', 1.4, p => { const sad = mindOf(p)[2] === 'sad'; relF(p, sad ? 6 : 1); fx({ mood: 4 }); mem(p, 'comfort', 1, 'ปลอบใจ'); npcReply(p, sad ? 'ขอบคุณนะ… รู้สึกดีขึ้นเยอะเลย' : 'ฉันโอเคนะ แต่ขอบคุณที่เป็นห่วง', sad ? 'happy' : 'neutral'); }],
+  ['cry', '😢 ร้องไห้ระบาย', 'tear', 1.8, p => { const ok = relOf(p.id).f >= 40; fx({ mood: ok ? 15 : 3 }); if (typeof stressAdd === 'function') stressAdd(ok ? -15 : -3); relF(p, ok ? 3 : -1); mem(p, 'cry', ok ? 1 : 0, 'ร้องไห้ให้ฟัง'); npcReply(p, ok ? 'ไม่เป็นไรนะ ฉันอยู่ตรงนี้' : 'เอ่อ… ไม่เป็นไรใช่ไหม?', ok ? 'sad' : 'neutral'); }],
+  ['tickle', '😆 จั๊กจี้', 'spark', 1.2, p => { const ok = relOf(p.id).f >= 40; relF(p, ok ? 3 : -4); fx({ mood: ok ? 6 : -2 }); npcReply(p, ok ? 'ฮ่าๆๆ พอแล้ว!' : 'หยุดนะ ไม่ตลก', ok ? 'happy' : 'angry'); }],
+  ['dance', '💃 ชวนเต้นรำ', 'note', 2, p => { const ok = relOf(p.id).f >= 20; relF(p, ok ? 3 : 0); fx({ mood: ok ? 10 : 2, energy: -4 }); tick(20); mem(p, 'dance', ok ? 1 : 0, 'เต้นรำด้วยกัน'); npcReply(p, ok ? 'สนุกจัง! เต้นเก่งนะเนี่ย' : 'อ่า… ฉันเต้นไม่เป็นหรอก', ok ? 'happy' : 'neutral'); }],
+  ['snack', '🍪 แบ่งขนม', 'spark', 1, p => { const id = Object.keys(st.inv).find(i => ITEMS[i].food); if (!id) return say('ไม่มีของกินในกระเป๋า'); addItem(id, -1); const liked = p.love?.includes(id) || p.like?.includes(id); relF(p, liked ? 7 : 4); mem(p, 'snack', 1, `แบ่ง${ITEMS[id].n}ให้`); npcReply(p, liked ? `${ITEMS[id].n}! ของโปรดเลย ขอบคุณ!` : 'ขอบคุณนะ อร่อยดี', 'happy'); }],
+  ['eat', '🍜 ชวนไปกินข้าว ฿80', 'spark', 1.6, p => { if (st.money < 80) return say('เงินไม่พอ'); fade(() => { st.money -= 80; relF(p, 5); fx({ food: 40, mood: 10 }); tick(60); mem(p, 'eat', 1, 'กินข้าวด้วยกัน'); npcReply(p, 'อิ่มอร่อยมาก ไว้ไปอีกนะ!', 'happy'); }, 600); }],
+  ['walk', '🚶 ชวนเดินเล่น', 'spark', 1.8, p => { relF(p, 3); fx({ mood: 5, energy: -3 }); tick(30); mem(p, 'walk', 1, 'เดินเล่นด้วยกัน'); npcReply(p, 'อากาศดีเนอะ เดินคุยกันแบบนี้ชอบจัง', 'happy'); }],
+  ['outfit', '👗 ชมชุดที่ใส่', 'spark', 1, p => { const ok = (p.trait !== 'grumpy'); relF(p, ok ? 3 : 0); xp('charm', 5); npcReply(p, ok ? 'จริงเหรอ! เพิ่งซื้อมาเลย' : 'ก็แค่ชุดธรรมดา', ok ? 'happy' : 'neutral'); }],
+  ['advice', '🗣️ ขอคำปรึกษา', 'spark', 1.2, p => { if (typeof stressAdd === 'function') stressAdd(-8); relF(p, 2); tick(20); npcReply(p, ['ลองพักผ่อนให้พอ แล้วค่อยคิดใหม่นะ', 'ทำทีละอย่าง ไม่ต้องรีบ', 'ถ้าเหนื่อยก็คุยกับเพื่อนบ้างนะ', 'เก็บเงินไว้บ้าง อนาคตจะได้สบาย'][(p.k + day()) % 4], 'neutral'); }],
+  ['rps', '✊ เป่ายิ้งฉุบ', 'star', .8, p => { const w = Math.random(); relF(p, 1); fx({ mood: 3 }); npcReply(p, w < .33 ? 'ฉันชนะ! 😜' : w < .66 ? 'เสมอ! อีกรอบ!' : 'โอ๊ย แพ้ซะได้', w < .66 ? 'happy' : 'sad'); }],
+  ['prank', '👻 แกล้งหลอก', 'sweat', 1, p => { const ok = p.trait === 'cheerful' || relOf(p.id).f >= 60; relF(p, ok ? 3 : -5); if (!ok) relH(p, 5); mem(p, 'prank', ok ? 1 : -1, 'โดนแกล้ง'); npcReply(p, ok ? 'ว้าย! ฮ่าๆ แสบนัก!' : 'ไม่ตลกเลยนะ!', ok ? 'happy' : 'angry'); }],
+  ['argue', '😤 ทะเลาะ', 'anger', 1.4, p => { relF(p, -6); relH(p, 8); fx({ mood: -6 }); if (typeof stressAdd === 'function') stressAdd(6); mem(p, 'argue', -1, 'ทะเลาะกัน'); npcReply(p, 'เธอนี่มันไม่มีเหตุผลเลย!', 'angry'); }],
+  ['push', '🫸 ผลัก', 'anger', 1, p => { relF(p, -12); relH(p, 18); fx({ mood: -4 }); mem(p, 'push', -2, 'ผลัก'); npcReply(p, 'ผลักทำไม! อย่ามายุ่งกับฉัน!', 'angry'); }],
   ['slap', '👋 ตบ', 'anger', 1, p => {
     relF(p, -20); relH(p, 30); mem(p, 'slap', -3, 'ตบหน้า');
     if (Math.random() < .5) { fx({ mood: -12, energy: -5 }); toast(`💥 ${p.n} ตบกลับ!`); } else fx({ mood: -6 });
-    reply(p, 'เธอกล้าดียังไง!!', 'angry');
+    npcReply(p, 'เธอกล้าดียังไง!!', 'angry');
   }],
-  ['sorry', '🙏 ขอโทษ', 'tear', 1.2, p => { const r = relOf(p.id); if (!(r.h > 0)) return reply(p, 'ขอโทษเรื่องอะไรเหรอ?', 'neutral'); const d = 6 + lv('charm') * 2; relH(p, -d); mem(p, 'sorry', 1, 'ขอโทษ'); reply(p, r.h < 30 ? 'ไม่เป็นไรแล้ว ลืมๆ ไปเถอะ' : 'ฉันยังโกรธอยู่นะ… แต่จะลองคิดดู', r.h < 30 ? 'happy' : 'sad'); }],
+  ['sorry', '🙏 ขอโทษ', 'tear', 1.2, p => { const r = relOf(p.id); if (!(r.h > 0)) return npcReply(p, 'ขอโทษเรื่องอะไรเหรอ?', 'neutral'); const d = 6 + lv('charm') * 2; relH(p, -d); mem(p, 'sorry', 1, 'ขอโทษ'); npcReply(p, r.h < 30 ? 'ไม่เป็นไรแล้ว ลืมๆ ไปเถอะ' : 'ฉันยังโกรธอยู่นะ… แต่จะลองคิดดู', r.h < 30 ? 'happy' : 'sad'); }],
 ];
 function actMenu(p) {
   line(`${p.n}: "หืม? จะทำอะไรเหรอ"`, 'neutral');
@@ -85,8 +85,8 @@ function privateTime(p) {
   if (scene !== home) return say('ต้องอยู่ที่บ้านของคุณเอง');
   const h = hour(); if (h < 20 && h >= 2) return say('ไว้ช่วงกลางคืนนะ');
   const r = relOf(p.id);
-  if (r.priv === day()) return reply(p, 'วันนี้พอแล้วนะ พักผ่อนกันเถอะ', 'neutral');
-  if (r.f < 80 || (r.h || 0) > 0 || Math.random() < .15) { mem(p, 'decline', 0, 'ปฏิเสธเวลาส่วนตัว'); return reply(p, 'วันนี้ไม่ค่อยมีอารมณ์เลย ขอนอนกอดกันเฉยๆ ได้ไหม?', 'neutral'); }
+  if (r.priv === day()) return npcReply(p, 'วันนี้พอแล้วนะ พักผ่อนกันเถอะ', 'neutral');
+  if (r.f < 80 || (r.h || 0) > 0 || Math.random() < .15) { mem(p, 'decline', 0, 'ปฏิเสธเวลาส่วนตัว'); return npcReply(p, 'วันนี้ไม่ค่อยมีอารมณ์เลย ขอนอนกอดกันเฉยๆ ได้ไหม?', 'neutral'); }
   openMenu(`💞 ใช้เวลาส่วนตัวกับ ${p.n}`, [['ใช้การป้องกัน', () => intimate(p, true)], ['ไม่ป้องกัน (พร้อมมีลูก)', () => intimate(p, false)]]);
 }
 function intimate(p, safe) {
