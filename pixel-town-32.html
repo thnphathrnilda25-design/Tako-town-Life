@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>เมืองพิกเซล</title>
+<link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -106,11 +107,25 @@ body:has(#panel:not([hidden])) #dock,body:has(#menu:not([hidden])) #dock,body:ha
 #panel{max-height:calc(var(--vh,100vh) - 24px - var(--st) - var(--sb))}
 #menu{max-height:calc(var(--vh,100vh) - 24px);overflow-y:auto}
 #select{height:var(--vh,100vh);box-sizing:border-box}
-@media (pointer:coarse) and (max-width:560px){
-  body #talk .pt{width:84px;padding:4px}body #talk .fr{width:68px;height:68px}body #talk .nm{font-size:13px;padding:2px 8px}
-  body #talk .tx{min-height:84px;font-size:15px;padding:10px 12px}
-  body #talkc{bottom:calc(150px + var(--sb));right:8px;left:8px;min-width:0;max-width:none;max-height:calc(var(--vh,100vh) - 170px)}
-  body #talkc button{font-size:15px;padding:7px 10px}   /* "body" beats talkbox.js's later-injected styles */
+/* landscape only on phones: portrait shows a "rotate your phone" screen */
+#rotate{display:none;position:fixed;inset:0;z-index:20;background:linear-gradient(#1b1540,#3a2a6a);flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;font-size:20px;padding:24px}
+#rotate .ph{font-size:64px;animation:turn 1.6s ease-in-out infinite}#rotate .sub{font-size:14px;opacity:.7}
+@keyframes turn{0%,20%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
+@media (pointer:coarse) and (orientation:portrait){#rotate{display:flex}}
+/* landscape phones: short screen, so compact talk box with choices on the right */
+@media (pointer:coarse) and (max-height:500px){
+  body #talk{bottom:calc(6px + var(--sb));width:min(620px,calc(100vw - 230px))}
+  body #talk .pt{width:84px;padding:4px}body #talk .fr{width:64px;height:64px}body #talk .nm{font-size:12px;padding:1px 8px}
+  body #talk .tx{min-height:76px;font-size:15px;padding:8px 12px}
+  body #talkc{bottom:calc(8px + var(--sb));right:calc(8px + var(--sr));min-width:0;width:210px;max-height:calc(var(--vh,100vh) - 80px)}
+  body #talkc button{font-size:14px;padding:6px 8px}   /* "body" beats talkbox.js's later-injected styles */
+  #talk{left:calc(8px + var(--sl))!important;transform:none!important}
+  #hud{transform:scale(.85);transform-origin:top left}
+  #stick{width:100px!important;height:100px!important;left:calc(16px + var(--sl))!important;bottom:calc(14px + var(--sb))!important}
+  #abtn{width:64px!important;height:64px!important;bottom:calc(20px + var(--sb))!important}
+  #dock{bottom:calc(10px + var(--sb))!important;right:calc(96px + var(--sr))!important}
+  #hint{bottom:calc(70px + var(--sb))!important}#msg{bottom:calc(120px + var(--sb))!important}
+  #panel{width:min(620px,86vw)}
 }
 @media (max-width:420px){
   #hud{font-size:12px;padding:8px 10px}
@@ -137,6 +152,7 @@ body:has(#panel:not([hidden])) #dock,body:has(#menu:not([hidden])) #dock,body:ha
 <div id="dock"><button id="bInv" title="กระเป๋า (I)" aria-label="กระเป๋า">🎒</button><button id="bJour" title="สมุดบันทึก (J)" aria-label="สมุดบันทึก">📖</button><button id="bDeco" title="แต่งบ้าน (B)" aria-label="แต่งบ้าน" hidden>🛠️</button></div>
 <div id="touch"><div id="stick"><div id="knob"></div></div><button id="abtn" aria-label="ทำกิจกรรม">A</button></div>
 <div id="fade"></div>
+<div id="rotate"><div class="ph">📱</div><div>หมุนโทรศัพท์เป็นแนวนอนเพื่อเล่น</div><div class="sub">เกมนี้เล่นได้เฉพาะแนวนอน</div></div>
 <div id="select"><h1>เมืองพิกเซล</h1><div>เลือกตัวละครเพื่อเริ่มชีวิตใหม่ในเมือง</div><div class="row" id="pick"></div></div>
 <script>/* load order matters; the timestamp stops stale cached modules */
 ['people', 'game', 'mapart', 'wearart', 'life', 'seasons', 'school', 'shops', 'pets', 'wardrobe', 'fashion', 'minis', 'anim', 'love', 'phone', 'walk', 'dialog', 'events', 'audio', 'collect', 'biz', 'quests', 'adventure', 'mayor', 'talkbox', 'goals', 'wallet', 'lively', 'homes', 'family', 'collections', 'career', 'housing', 'social', 'memory', 'realism', 'system'].forEach(n => document.write('<script src="js/' + n + '.js?' + Date.now() + '"><\/script>'));</script>

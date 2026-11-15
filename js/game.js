@@ -11,6 +11,11 @@ function resize() {
   ctx.imageSmoothingEnabled = false;
 }
 addEventListener('resize', resize); visualViewport?.addEventListener('resize', resize); resize();
+// phones: first tap goes fullscreen and locks landscape where the browser allows it (Android); iPhone relies on the rotate screen
+if (matchMedia('(pointer:coarse)').matches) addEventListener('pointerdown', () => {
+  const d = document.documentElement; if (document.fullscreenElement || !d.requestFullscreen) return;
+  d.requestFullscreen().then(() => screen.orientation?.lock?.('landscape')).catch(() => {});
+}, { once: true });
 
 // ================= drawing primitives (g = current target) =================
 let g = ctx;

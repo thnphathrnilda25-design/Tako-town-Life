@@ -1,0 +1,9 @@
+{
+  "name": "เมืองพิกเซล",
+  "short_name": "เมืองพิกเซล",
+  "start_url": "pixel-town-32.html",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#1b1530",
+  "theme_color": "#1b1530"
+}
