@@ -60,7 +60,7 @@ Then open `http://localhost:8765/pixel-town-32.html`.
 people, game, mapart, wearart, life, seasons, school, shops, pets, wardrobe, fashion,
 minis, anim, love, phone, walk, dialog, events, audio, collect, biz, quests, adventure,
 mayor, talkbox, goals, wallet, lively, homes, family, collections, career, housing,
-social, memory, realism, system
+social, memory, realism, townlife, nightlife, system
 ```
 
 Modules are plain scripts that share one global scope. A later module can replace or wrap an earlier one's functions (for example `talk`, `say`, `updatePerson`, `personOpts`, `seasonTick`, `lifeTick`, `drawEnt`, `update`). Changing the order will break things. Add new modules before `system.js`, and register them in the array at the bottom of the HTML.
@@ -110,7 +110,7 @@ Modules contain `console.assert` checks at load time (item tables, placement, in
 | `js/memory.js` | NPC memories, memory lines in dialogue, gossip through friends, NPC-to-NPC friendships/feuds, town reputation, aging, parents' and player's death, funerals, inheritance. |
 | `js/realism.js` | Bladder, stress, sleep debt, weight, injuries, food poisoning/colds, moodlets, loans + credit score, utility bills by usage, yearly inflation. |
 
-Load order now ends with: `… career, housing, social, memory, realism, system`. Backup of the files before this update: `js.backup-before-sprites/`.
+Load order now ends with: `… career, housing, social, memory, realism, townlife, nightlife, system`. Backup of the files before this update: `js.backup-before-sprites/`.
 
 ## Map redesign (`js/mapart.js`, loaded right after `game.js`)
 
