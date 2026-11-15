@@ -12,10 +12,11 @@ function resize() {
 }
 addEventListener('resize', resize); visualViewport?.addEventListener('resize', resize); resize();
 // phones: first tap goes fullscreen and locks landscape where the browser allows it (Android); iPhone relies on the rotate screen
-if (matchMedia('(pointer:coarse)').matches) addEventListener('pointerdown', () => {
+// on pointerup, after the tap's click has landed: going fullscreen moves the page, and on pointerdown the tap then missed its button
+if (matchMedia('(pointer:coarse)').matches) addEventListener('pointerup', () => setTimeout(() => {
   const d = document.documentElement; if (document.fullscreenElement || !d.requestFullscreen) return;
   d.requestFullscreen().then(() => screen.orientation?.lock?.('landscape')).catch(() => {});
-}, { once: true });
+}, 0), { once: true });
 
 // ================= drawing primitives (g = current target) =================
 let g = ctx;

@@ -10,7 +10,8 @@
 <style>
 :root{--panel:#1b1530ee;--edge:#f4d9a0;--ink:#fff8ec;--gold:#ffe08a;--btn:#2e2650;--btnb:#4a4078;--st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);--sl:env(safe-area-inset-left,0px);--sr:env(safe-area-inset-right,0px)}
 [hidden]{display:none!important}
-html,body{margin:0;height:100%;background:#1b1530;overflow:hidden;font-family:Mitr,system-ui,"Leelawadee UI",Tahoma,sans-serif;color:var(--ink);touch-action:none;user-select:none;-webkit-user-select:none}
+html,body{margin:0;height:100%;background:#1b1530;overflow:hidden;font-family:Mitr,system-ui,"Leelawadee UI",Tahoma,sans-serif;color:var(--ink);user-select:none;-webkit-user-select:none}
+#c,#stick,#abtn{touch-action:none}button{touch-action:manipulation}   /* block browser gestures only on the game controls; menus must still tap and scroll */
 #c{display:block;width:100vw;height:100vh;image-rendering:pixelated}
 .panel{background:var(--panel);border:2px solid var(--edge);border-radius:10px;box-shadow:0 4px 0 #0006}
 button{font:inherit;color:var(--ink);background:var(--btn);border:2px solid var(--btnb);border-radius:8px;cursor:pointer}
@@ -112,6 +113,13 @@ body:has(#panel:not([hidden])) #dock,body:has(#menu:not([hidden])) #dock,body:ha
 #rotate .ph{font-size:64px;animation:turn 1.6s ease-in-out infinite}#rotate .sub{font-size:14px;opacity:.7}
 @keyframes turn{0%,20%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
 @media (pointer:coarse) and (orientation:portrait){#rotate{display:flex}}
+/* short screens: one scroll for the whole creator, start button pinned on screen */
+@media (max-height:560px){
+  body #select{justify-content:flex-start;gap:8px}body #select h1{font-size:26px}
+  body #creator .frm{max-height:none;overflow:visible}
+  body #creator .frm .cont{position:sticky;bottom:8px;z-index:1;box-shadow:0 4px 14px #0008}
+}
+#err{position:fixed;left:8px;right:8px;top:8px;z-index:30;background:#8a1a1a;color:#fff;padding:8px 12px;border-radius:8px;font-size:13px;white-space:pre-wrap}
 /* landscape phones: short screen, so compact talk box with choices on the right */
 @media (pointer:coarse) and (max-height:500px){
   body #talk{bottom:calc(6px + var(--sb));width:min(620px,calc(100vw - 230px))}
@@ -154,6 +162,11 @@ body:has(#panel:not([hidden])) #dock,body:has(#menu:not([hidden])) #dock,body:ha
 <div id="fade"></div>
 <div id="rotate"><div class="ph">📱</div><div>หมุนโทรศัพท์เป็นแนวนอนเพื่อเล่น</div><div class="sub">เกมนี้เล่นได้เฉพาะแนวนอน</div></div>
 <div id="select"><h1>เมืองพิกเซล</h1><div>เลือกตัวละครเพื่อเริ่มชีวิตใหม่ในเมือง</div><div class="row" id="pick"></div></div>
+<script>   // show script errors on screen: phones have no console, so a red box tells the player (and us) what broke
+let errN = 0; const showErr = m => { if (errN++ > 2) return; const d = document.getElementById('err') || document.body.appendChild(Object.assign(document.createElement('div'), { id: 'err', title: 'แตะเพื่อปิด', onclick() { this.remove(); } })); d.textContent += (d.textContent ? '\n' : '⚠️ เกิดข้อผิดพลาด (แคปหน้าจอนี้ส่งให้ผู้พัฒนา · แตะเพื่อปิด)\n') + m; };
+addEventListener('error', e => showErr(`${e.message} @ ${(e.filename || '').split('/').pop().split('?')[0]}:${e.lineno}`));
+addEventListener('unhandledrejection', e => showErr(String(e.reason?.message || e.reason)));
+</script>
 <script>/* load order matters; the timestamp stops stale cached modules */
 ['people', 'game', 'mapart', 'wearart', 'life', 'seasons', 'school', 'shops', 'pets', 'wardrobe', 'fashion', 'minis', 'anim', 'love', 'phone', 'walk', 'dialog', 'events', 'audio', 'collect', 'biz', 'quests', 'adventure', 'mayor', 'talkbox', 'goals', 'wallet', 'lively', 'homes', 'family', 'collections', 'career', 'housing', 'social', 'memory', 'realism', 'system'].forEach(n => document.write('<script src="js/' + n + '.js?' + Date.now() + '"><\/script>'));</script>
 </body>
