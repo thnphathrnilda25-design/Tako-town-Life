@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Pixel Town 32</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--panel:#1b1530ee;--edge:#f4d9a0;--ink:#fff8ec;--gold:#ffe08a;--btn:#2e2650;--btnb:#4a4078;--st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);--sl:env(safe-area-inset-left,0px);--sr:env(safe-area-inset-right,0px)}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%;background:#1b1530;overflow:hidden;font-family:Mitr,system-ui,"Leelawadee UI",Tahoma,sans-serif;color:var(--ink);touch-action:none;user-select:none;-webkit-user-select:none}
+#c{display:block;width:100vw;height:100vh;image-rendering:pixelated}
+.panel{background:var(--panel);border:2px solid var(--edge);border-radius:10px;box-shadow:0 4px 0 #0006}
+button{font:inherit;color:var(--ink);background:var(--btn);border:2px solid var(--btnb);border-radius:8px;cursor:pointer}
+button:hover:not(:disabled),button:focus-visible{border-color:var(--gold);outline:none}
+button:disabled{opacity:.45;cursor:default}
+#hud{position:fixed;top:calc(10px + var(--st));left:calc(10px + var(--sl));box-sizing:border-box;padding:7px 9px;font-size:12px;line-height:1.4;width:min(230px,calc(100vw - 20px))}
+#hud .fold{display:flex;width:100%;align-items:center;justify-content:space-between;gap:8px;padding:1px 2px;border:0;background:transparent;text-align:left;font-size:12px;line-height:1.25;white-space:nowrap}
+#hud .fold span:first-child{overflow:hidden;text-overflow:ellipsis;min-width:0}
+#hud .fold span:last-child{color:var(--gold);flex:0 0 auto}
+#hud .details{margin-top:6px;padding-top:5px;border-top:1px solid #ffffff22}
+#hud .top{display:flex;justify-content:space-between;font-weight:600;font-size:15px}
+#hud .row{display:flex;justify-content:space-between;gap:8px}
+#hud .goals{margin-top:7px;border-top:1px solid #ffffff22;padding-top:5px;font-size:12px;line-height:1.5}
+#hud .goals .gh{color:var(--gold);font-weight:600}
+#hud .goals .go{opacity:.55;text-decoration:line-through}
+#hud .goals .gn{opacity:.95}
+.bar{height:7px;background:#0007;border-radius:4px;overflow:hidden;margin:1px 0 4px}.bar>i{display:block;height:100%;box-shadow:inset 0 2px #fff5}
+#help{position:fixed;top:calc(10px + var(--st));right:calc(10px + var(--sr));padding:6px 10px;font-size:12px;opacity:.9}
+#hint{position:fixed;bottom:calc(18px + var(--sb));left:50%;transform:translateX(-50%);padding:7px 16px;font-size:15px;color:var(--gold);white-space:nowrap}
+#msg{position:fixed;bottom:calc(66px + var(--sb));left:50%;transform:translateX(-50%);padding:8px 16px;font-size:15px;text-align:center;max-width:86vw}
+#toasts{position:fixed;top:12px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;z-index:5}
+#toasts div{padding:8px 16px;font-size:15px;color:var(--gold);animation:pop .3s}
+@keyframes pop{from{transform:scale(.6);opacity:0}}
+#menu{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);padding:14px;min-width:270px;max-width:92vw;display:flex;flex-direction:column;gap:6px;z-index:3}
+#menu h3,#panel h3,#mg h3{margin:0 0 4px;font-size:18px;text-align:center;color:var(--gold)}
+#menu button{font-size:15px;text-align:left;padding:7px 10px}
+#menu button.close,#panel .close{text-align:center;opacity:.85}
+#panel{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);padding:14px;width:min(560px,92vw);max-height:84vh;display:flex;flex-direction:column;gap:8px;z-index:3}
+#panel .body{overflow:auto;display:flex;flex-direction:column;gap:6px;padding-right:4px}
+#panel .tabs{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+#panel .tabs button{padding:4px 8px;font-size:13px}#panel .tabs button.on{border-color:var(--gold);background:#4a3c7a}
+.item{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:center;background:#ffffff0d;border-radius:8px;padding:6px 8px}
+.item .ic{font-size:22px;text-align:center}.item .sub{font-size:12px;opacity:.75}.item button{padding:4px 12px}
+.money{text-align:center;color:#7ee07e;font-weight:600}
+.ok{color:#7ee07e}.no{color:#ff8a8a}.dim{opacity:.6}
+.sec{font-weight:600;color:var(--gold);margin-top:4px}
+#mg{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);padding:16px;width:min(420px,92vw);text-align:center;z-index:4}
+#mg .track{position:relative;height:26px;background:#0008;border-radius:6px;margin:14px 0;overflow:hidden}
+#mg .zone{position:absolute;top:0;bottom:0;background:#5ac87a99}
+#mg .zone i{position:absolute;top:0;bottom:0;left:35%;width:30%;background:#b8ffb0}
+#mg .mark{position:absolute;top:-2px;width:5px;height:30px;background:var(--gold);box-shadow:0 0 6px #ffe08a;transform:translateX(-50%)}
+#mg button{font-size:20px;padding:8px 40px}
+#mg .fb{height:24px;font-weight:600}
+#deco{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);padding:10px;width:min(640px,94vw);display:flex;flex-direction:column;gap:6px;z-index:2}
+#deco .list{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+#deco .list button{flex:0 0 auto;padding:4px 10px;font-size:13px}#deco .list button.on{border-color:var(--gold);background:#4a3c7a}
+#dock{position:fixed;right:calc(10px + var(--sr));bottom:calc(10px + var(--sb));display:flex;gap:6px;z-index:1}
+#dock button{width:46px;height:46px;font-size:22px;padding:0}
+#touch{display:none}
+@media (pointer:coarse){
+  #touch{display:block}#help{display:none}
+  #stick{position:fixed;left:calc(24px + var(--sl));bottom:calc(24px + var(--sb));width:120px;height:120px;border-radius:50%;background:#ffffff1a;border:2px solid #ffffff40;z-index:1}
+  #knob{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;background:#ffffff55;border:2px solid #fff8}
+  #abtn{position:fixed;right:calc(22px + var(--sr));bottom:calc(70px + var(--sb));width:74px;height:74px;border-radius:50%;font-size:26px;font-weight:600;background:#c8402ecc;border-color:#ffd0c0;z-index:1}
+  #dock{bottom:calc(154px + var(--sb))}
+  #hint{bottom:calc(160px + var(--sb))}#msg{bottom:calc(206px + var(--sb))}
+}
+@media (max-width:640px){#hud{transform:scale(.9);transform-origin:top left}}
+@media (max-width:560px){#help{display:none}}
+#panel .body,#select{overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+#deco .list{touch-action:pan-x}
+#fade{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .3s;z-index:6}
+#panel,#menu,#mg{background:#141026f8;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+#hud,#help,#hint,#msg,#dock{transition:opacity .15s}
+body:has(#panel:not([hidden])) #hud,body:has(#menu:not([hidden])) #hud,body:has(#mg:not([hidden])) #hud,
+body:has(#panel:not([hidden])) #help,body:has(#menu:not([hidden])) #help,body:has(#mg:not([hidden])) #help,
+body:has(#panel:not([hidden])) #hint,body:has(#menu:not([hidden])) #hint,body:has(#mg:not([hidden])) #hint,
+body:has(#panel:not([hidden])) #msg,body:has(#menu:not([hidden])) #msg,body:has(#mg:not([hidden])) #msg,
+body:has(#panel:not([hidden])) #dock,body:has(#menu:not([hidden])) #dock,body:has(#mg:not([hidden])) #dock{opacity:0;pointer-events:none}
+#toasts div{max-width:min(560px,86vw);text-align:center}
+#select{overflow:auto;position:fixed;inset:0;background:linear-gradient(#1b1540,#3a2a6a 60%,#c86a7a);display:flex;flex-direction:column;align-items:center;justify-content:center;justify-content:safe center;gap:16px;padding:calc(16px + var(--st)) 16px calc(16px + var(--sb));text-align:center;z-index:7}
+#select>*{flex-shrink:0}#select h1{margin:0;font-size:44px;letter-spacing:2px;text-shadow:0 4px 0 #2a1a3e,0 0 24px #ffb0d0}
+#select .row{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+#select .card{background:#ffffff14;border:3px solid #ffffff30;border-radius:14px;padding:12px 12px 8px;font-size:16px;transition:transform .15s}
+#select .card:hover,#select .card:focus-visible{border-color:var(--gold);transform:translateY(-4px)}
+#select .card canvas{width:128px;height:128px;image-rendering:pixelated;display:block;animation:bob 1s steps(2) infinite}
+#select .cont{font-size:16px;padding:8px 22px;border-color:var(--edge);background:var(--gold);color:#2a1a3e}
+@keyframes bob{50%{transform:translateY(-4px)}}
+@media (prefers-reduced-motion:reduce){#select .card canvas,#toasts div{animation:none}}
+/* --- mobile / touch polish --- */
+@media (pointer:coarse){
+  button{min-height:42px}
+  #panel .item button,#panel .tabs button{min-height:36px}
+  #dock button{width:50px;height:50px}
+  #panel{width:min(560px,94vw);max-height:calc(100dvh - 24px - var(--st) - var(--sb))}
+  #hint{white-space:normal;max-width:78vw;text-align:center;line-height:1.35}
+  #msg{max-width:82vw}
+  #hud{width:min(230px,62vw)}
+}
+@media (max-width:420px){
+  #hud{font-size:12px;padding:8px 10px}
+  #hud .top{font-size:13px}
+  #panel{padding:10px;gap:6px}
+  #panel h3{font-size:16px}
+  #panel .item{grid-template-columns:28px 1fr auto;gap:6px;padding:6px}
+  #panel .item .ic{font-size:19px}
+  #toasts div{font-size:13px}
+}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hud" class="panel"></div>
+<div id="help" class="panel">เดิน WASD/ลูกศร · E/Space ทำกิจกรรม · I กระเป๋า · J สมุด · P โทรศัพท์ · B แต่งบ้าน · Esc ปิด</div>
+<div id="hint" class="panel" hidden></div>
+<div id="msg" class="panel" hidden></div>
+<div id="toasts"></div>
+<div id="menu" class="panel" hidden role="dialog" aria-label="เมนู"></div>
+<div id="panel" class="panel" hidden role="dialog"></div>
+<div id="mg" class="panel" hidden role="dialog" aria-label="มินิเกมทำงาน"></div>
+<div id="deco" class="panel" hidden></div>
+<div id="dock"><button id="bInv" title="กระเป๋า (I)" aria-label="กระเป๋า">🎒</button><button id="bJour" title="สมุดบันทึก (J)" aria-label="สมุดบันทึก">📖</button><button id="bDeco" title="แต่งบ้าน (B)" aria-label="แต่งบ้าน" hidden>🛠️</button></div>
+<div id="touch"><div id="stick"><div id="knob"></div></div><button id="abtn" aria-label="ทำกิจกรรม">A</button></div>
+<div id="fade"></div>
+<div id="select"><h1>Pixel Town</h1><div>เลือกตัวละครเพื่อเริ่มชีวิตใหม่ในเมือง</div><div class="row" id="pick"></div></div>
+<script>/* load order matters; the timestamp stops stale cached modules */
+['people', 'game', 'mapart', 'wearart', 'life', 'seasons', 'school', 'shops', 'pets', 'wardrobe', 'minis', 'anim', 'love', 'phone', 'walk', 'dialog', 'events', 'audio', 'collect', 'biz', 'quests', 'adventure', 'mayor', 'talkbox', 'goals', 'wallet', 'lively', 'homes', 'family', 'collections', 'career', 'housing', 'social', 'memory', 'realism', 'system'].forEach(n => document.write('<script src="js/' + n + '.js?' + Date.now() + '"><\/script>'));</script>
+</body>
+</html>
