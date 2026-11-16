@@ -19,7 +19,6 @@ const _relName = relName; relName = (id, f) => hatOf(id) >= 80 ? 'ศัตร�
 function react(p, key) {
   const r = relOf(p.id), tr = p.trait || 'kind'; let v = PREF[tr]?.[key] ?? 0; if (Math.random() < .25) v += Math.random() < .5 ? -1 : 1; if (lv('charm') >= 5 && v < 0 && Math.random() < .4) v++;
   v = Math.max(-2, Math.min(2, v)); lastV = v; const L = LINES2[key][0];
-  if (st.clean < 25) v = Math.min(v, -1);
   if (v > 0) { r.f = Math.min(100, r.f + 3 * v + lv('charm') * .4); fx({ mood: 2 + v }); }
   else if (v === 0) r.f = Math.min(100, r.f + 1);
   else { r.f = Math.max(0, r.f + 4 * v); r.h = Math.min(100, hatOf(p.id) + 8 * -v); fx({ mood: -2 }); }

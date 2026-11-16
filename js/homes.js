@@ -221,4 +221,4 @@ APP.map = () => {
 };
 
 console.assert(typeof homeLabel(HOMES[0]) === 'string', 'home labels resolve');
-ACH.push(['neighbor5', '🏠 เพื่อนบ้านที่ดี', 'เยี่ยมบ้านเพื่อนบ้านครบ 5 หลัง', () => (st.homesVisited || []).length >= HOMES.length]);
+ACH.push(['neighbor5', '🏠 เพื่อนบ้านที่ดี', `เยี่ยมบ้านเพื่อนบ้านครบ ${HOMES.length} หลัง`, () => (st.homesVisited || []).length >= HOMES.length]);

@@ -129,6 +129,8 @@ body:has(#panel:not([hidden])) #dock,body:has(#menu:not([hidden])) #dock,body:ha
   body #talkc button{font-size:14px;padding:6px 8px}   /* "body" beats talkbox.js's later-injected styles */
   #talk{left:calc(8px + var(--sl))!important;transform:none!important}
   #hud{transform:scale(.85);transform-origin:top left}
+  #hud .details{max-height:calc(var(--vh,100vh) * .54);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}   /* keep most of the screen free */
+  #hud .details::-webkit-scrollbar{display:none}
   #stick{width:100px!important;height:100px!important;left:calc(16px + var(--sl))!important;bottom:calc(14px + var(--sb))!important}
   #abtn{width:64px!important;height:64px!important;bottom:calc(20px + var(--sb))!important}
   #dock{bottom:calc(10px + var(--sb))!important;right:calc(96px + var(--sr))!important}
@@ -197,6 +199,6 @@ addEventListener('error', e => showErr(`${e.message} @ ${(e.filename || '').spli
 addEventListener('unhandledrejection', e => showErr(String(e.reason?.message || e.reason)));
 </script>
 <script>/* load order matters; the timestamp stops stale cached modules */
-['people', 'game', 'mapart', 'wearart', 'life', 'seasons', 'school', 'shops', 'pets', 'wardrobe', 'fashion', 'minis', 'anim', 'love', 'phone', 'walk', 'dialog', 'events', 'audio', 'collect', 'biz', 'quests', 'adventure', 'mayor', 'talkbox', 'goals', 'wallet', 'lively', 'homes', 'family', 'collections', 'career', 'housing', 'social', 'memory', 'realism', 'townlife', 'nightlife', 'system'].forEach(n => document.write('<script src="js/' + n + '.js?' + Date.now() + '"><\/script>'));</script>
+['people', 'game', 'mapart', 'wearart', 'life', 'seasons', 'school', 'shops', 'pets', 'wardrobe', 'fashion', 'minis', 'anim', 'love', 'phone', 'walk', 'dialog', 'events', 'audio', 'collect', 'biz', 'quests', 'adventure', 'mayor', 'talkbox', 'goals', 'wallet', 'lively', 'homes', 'family', 'collections', 'career', 'tech', 'income', 'housing', 'social', 'memory', 'realism', 'townlife', 'npclife', 'npcdeep', 'npcmove', 'nightlife', 'tutorial', 'system'].forEach(n => document.write('<script src="js/' + n + '.js?' + Date.now() + '"><\/script>'));</script>
 </body>
 </html>

@@ -140,7 +140,7 @@ addOpts('piano', { drop: () => true, add: () => [[MG + 'เล่นเปีย
 }]] });
 addOpts('gym', { drop: () => true, add: () => [[MG + 'วิ่งลู่วิ่ง (หลบสิ่งกีดขวาง)', () => {
   if (st.energy < 20) return say('เหนื่อยเกินไป');
-  startMini('dodge', { title: '🏃 วิ่งลู่วิ่ง' }, done('run', s => { fx({ energy: -15, clean: -20, mood: 3 + Math.round(4 * s) }); xp('fit', Math.round(15 + 25 * s)); tick(60); say(`วิ่งได้เยี่ยม! คะแนน ${Math.round(s * 100)}%`); }));
+  startMini('dodge', { title: '🏃 วิ่งลู่วิ่ง' }, done('run', s => { fx({ energy: -15, mood: 3 + Math.round(4 * s) }); xp('fit', Math.round(15 + 25 * s)); tick(60); say(`วิ่งได้เยี่ยม! คะแนน ${Math.round(s * 100)}%`); }));
 }]] });
 const tvDance = () => startMini('dance', { title: '💃 ปาร์ตี้เต้นรำ' }, done('talk', s => { fx({ mood: 8 + Math.round(14 * s), energy: -6 }); xp('fit', Math.round(8 + 14 * s)); xp('charm', Math.round(8 + 16 * s)); tick(30); say(`เต้นได้ ${Math.round(s * 16)}/16 จังหวะ`); }));
 const memoryGame = () => startMini('memory', { title: '🃏 เกมการ์ดความจำ' }, done('sit', s => { fx({ mood: 5 + Math.round(10 * s) }); xp('logic', Math.round(10 + 20 * s)); tick(30); say(`เปิดการ์ดครบแล้ว (${Math.round(s * 100)}%)`); }));
@@ -151,10 +151,10 @@ addOpts('sofa', { add: () => [[MG + 'เล่นการ์ดความจ�
   const t = town.targets.find(t => t.name === 'ฟิตเนส'), base = Object.getOwnPropertyDescriptor(t, 'opts').value;
   t.opts = [[MG + 'ออกกำลังกาย ฿30 (จับจังหวะ)', () => {
     if (st.energy < 20) return say('เหนื่อยเกินไป'); if (st.money < 30) return say('เงินไม่พอ');
-    startMini('bar', { title: '💪 วิดพื้น', steps: [['ครั้งที่ 1', '🏋️'], ['ครั้งที่ 2', '🏋️'], ['ครั้งที่ 3', '🏋️'], ['ครั้งที่ 4', '🏋️'], ['ครั้งที่ 5', '🏋️']], speed: 1 + lv('fit') * .1, w: .24 }, done('lift', s => { fx({ money: -30, energy: -15, clean: -15, mood: 3 }); xp('fit', Math.round(25 + 40 * s)); tick(60); say(`ออกกำลังกายเสร็จ: ทำได้ครบ ${Math.round(s * 5)}/5 ครั้ง`); }));
+    startMini('bar', { title: '💪 วิดพื้น', steps: [['ครั้งที่ 1', '🏋️'], ['ครั้งที่ 2', '🏋️'], ['ครั้งที่ 3', '🏋️'], ['ครั้งที่ 4', '🏋️'], ['ครั้งที่ 5', '🏋️']], speed: 1 + lv('fit') * .1, w: .24 }, done('lift', s => { fx({ money: -30, energy: -15, mood: 3 }); xp('fit', Math.round(25 + 40 * s)); tick(60); say(`ออกกำลังกายเสร็จ: ทำได้ครบ ${Math.round(s * 5)}/5 ครั้ง`); }));
   }], base[1]];
 }
 {
-  for (const bt of town.targets.filter(b => b.name === 'ม้านั่งในสวน')) bt.opts = bt.opts.map(([l, fn]) => /วิ่ง/.test(l) ? [MG + 'วิ่งออกกำลังกาย (หลบสิ่งกีดขวาง)', () => { if (st.energy < 20) return say('เหนื่อยเกินไป'); startMini('dodge', { title: '🏃 วิ่งในสวน' }, done('run', s => { fx({ energy: -15, clean: -20, mood: 4 + Math.round(5 * s) }); xp('fit', Math.round(15 + 20 * s)); tick(60); say('วิ่งรอบสวนจนเหงื่อซึม'); })); }] : [l, fn]);
+  for (const bt of town.targets.filter(b => b.name === 'ม้านั่งในสวน')) bt.opts = bt.opts.map(([l, fn]) => /วิ่ง/.test(l) ? [MG + 'วิ่งออกกำลังกาย (หลบสิ่งกีดขวาง)', () => { if (st.energy < 20) return say('เหนื่อยเกินไป'); startMini('dodge', { title: '🏃 วิ่งในสวน' }, done('run', s => { fx({ energy: -15, mood: 4 + Math.round(5 * s) }); xp('fit', Math.round(15 + 20 * s)); tick(60); say('วิ่งรอบสวนจนเหงื่อซึม'); })); }] : [l, fn]);
 }
 console.assert(['bar', 'quiz', 'simon', 'dodge', 'memory', 'dance'].every(k => MINI[k] && MINI[k].init && MINI[k].view), 'mini-game table');

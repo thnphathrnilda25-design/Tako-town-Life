@@ -167,13 +167,95 @@ function lookRows(shop) {
     return row(lookPreview(L), L.n, ids.map(id => WITEM[id].n).join(' · '), act);
   });
 }
-// ---- townsfolk wear the styles too ----
-const _npcWear = npcWear;
-npcWear = (p, k) => {
-  if (k % 3 === 0) return _npcWear(p, k);
-  const L = p.age < 13 ? LOOKS[2] : p.age >= 60 ? LOOKS[k % 2 ? 1 : 5] : LOOKS[[0, 1, 3, 4, 5, 6][k % 6]];
-  const keep = st.wear; st.wear = wearLook(L, p.g); const o = wearPal(); st.wear = keep;
-  if (!o.skirt) o.skirt = 0; return o;
+// ---- townsfolk wear unique outfits drawn from every wardrobe category ----
+// Deterministic per-person picks; a shared signature table means no two NPCs wear the
+// same full outfit until their demographic pool is exhausted (in practice: never).
+const nwKey = (p, k) => p.id != null ? 'id:' + p.id : 'npc:' + k;
+const nwGroup = p => p.age != null && p.age < 13 ? (p.g === 'f' ? 'girl' : 'boy')
+  : p.age != null && p.age >= 60 ? (p.g === 'f' ? 'elderF' : 'elderM') : (p.g === 'f' ? 'woman' : 'man');
+const NW_TOP = ['tee', 'tank', 'hoodie', 'stripes', 'jacket', 'suit', 'dress', 'sweater', 'vest', 'overalls', 'polo', 'jersey', 'coat', 'pajamas', 'cardigan', 'raincoat', 'kimono', 'uniform', 'tux', 'dino',
+  'puffer', 'graphic', 'tracksuit', 'cableknit', 'sweaterdrape', 'blazer', 'oxford', 'rainbow', 'bomber', 'denim', 'varsity', 'leather', 'bowling', 'polka', 'flannel', 'retrostripe', 'turtleneck', 'linen', 'knitvest', 'bandtee', 'emohoodie', 'stripesleeve'];
+const NW_BOT = ['jeans', 'shorts', 'skirt', 'longskirt', 'cargo', 'leggings', 'slacks', 'baggy', 'pleated', 'ripped', 'flare', 'joggers', 'plaidskirt', 'tennisskirt'];
+const NW_SHOE = ['sneakers', 'boots', 'sandals', 'heels', 'slippers', 'plain', 'loafers', 'chunky', 'combat', 'maryjane', 'lightup', 'hightop'];
+const NW_HAT = ['cap', 'beanie', 'sunhat', 'beret', 'crown', 'catears', 'party', 'helmet', 'headband', 'wizard', 'bow', 'flowers', 'bucket', 'newsboy', 'pearlband', 'propeller', 'fedora'];
+const NW_GL = ['round', 'square', 'sun', 'heart', 'monocle', 'vr', 'cateye', 'shield', 'thin'];
+const NW_ACC = ['scarf', 'necklace', 'bowtie', 'backpack', 'headphones', 'mask', 'wings', 'earrings', 'cape', 'chain', 'pearls', 'studbelt', 'crossbody'];
+const nwNo = (a, ...drop) => { const d = new Set(drop); return a.filter(x => !d.has(x)); };
+const NW_SKIRT = new Set(['skirt', 'plaidskirt', 'tennisskirt']);
+const NW_CFG = {
+  boy: { top: nwNo(NW_TOP, 'dress'), bottom: nwNo(NW_BOT, 'skirt', 'longskirt', 'plaidskirt', 'tennisskirt'), shoes: nwNo(NW_SHOE, 'heels', 'maryjane'), hat: NW_HAT, gl: NW_GL, acc: NW_ACC },
+  girl: { top: NW_TOP, bottom: NW_BOT, shoes: nwNo(NW_SHOE, 'heels'), hat: NW_HAT, gl: NW_GL, acc: NW_ACC },
+  man: { top: nwNo(NW_TOP, 'dress'), bottom: nwNo(NW_BOT, 'skirt', 'longskirt', 'plaidskirt', 'tennisskirt'), shoes: nwNo(NW_SHOE, 'heels', 'maryjane'), hat: NW_HAT, gl: NW_GL, acc: NW_ACC },
+  woman: { top: NW_TOP, bottom: NW_BOT, shoes: NW_SHOE, hat: NW_HAT, gl: NW_GL, acc: NW_ACC },
+  elderM: { top: nwNo(NW_TOP, 'dress', 'tracksuit', 'bandtee', 'emohoodie', 'rainbow'), bottom: nwNo(NW_BOT, 'skirt', 'longskirt', 'plaidskirt', 'tennisskirt', 'ripped'), shoes: nwNo(NW_SHOE, 'heels', 'maryjane', 'combat'), hat: NW_HAT, gl: NW_GL, acc: NW_ACC },
+  elderF: { top: nwNo(NW_TOP, 'tracksuit', 'bandtee', 'emohoodie', 'rainbow'), bottom: nwNo(NW_BOT, 'ripped'), shoes: NW_SHOE, hat: NW_HAT, gl: NW_GL, acc: NW_ACC },
 };
+const NW_SLOTS = ['top', 'bottom', 'shoes', 'hat', 'gl', 'acc'];
+const NW_POOL = {}, NW_ORDER = {}, NW_POS = {}, NW_CACHE = new Map(), NW_USED = new Set(), NW_USED_CORE = new Set();
+const nwHash = s => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
+const nwRng = seed => { let s = seed >>> 0 || 0x9e3779b9; return () => (s = (Math.imul(s, 1664525) + 1013904223) >>> 0) / 4294967296; };
+function nwPool(group, slot) {
+  const key = group + '|' + slot; if (NW_POOL[key]) return NW_POOL[key];
+  const styles = new Set(NW_CFG[group][slot]);
+  let ids = WLIST[slot].filter(id => styles.has(WITEM[id].style));
+  if (!ids.length) ids = WLIST[slot].slice();
+  return NW_POOL[key] = ids;
+}
+function nwOrder(group, slot) {
+  const key = group + '|' + slot;
+  if (!NW_ORDER[key]) {
+    const a = nwPool(group, slot).slice(), r = nwRng(nwHash(key));
+    for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+    NW_ORDER[key] = a; NW_POS[key] = 0;
+  }
+  return NW_ORDER[key];
+}
+const nwDraw = (group, slot, attempt) => { const a = nwOrder(group, slot); return a[(NW_POS[group + '|' + slot] + attempt) % a.length]; };
+const nwWears = (p, k, slot) => nwRng(nwHash(nwKey(p, k) + '|' + slot))() < ({ hat: .62, gl: .34, acc: .58 }[slot] || 0);
+function nwCandidate(p, k, group, attempt) {
+  const w = {};
+  for (const slot of NW_SLOTS) w[slot] = (slot === 'top' || slot === 'bottom' || slot === 'shoes' || nwWears(p, k, slot)) ? nwDraw(group, slot, attempt) : null;
+  return w;
+}
+const nwSig = w => NW_SLOTS.map(s => w[s] || '-').join('|');
+const nwCore = w => [w.top, w.bottom, w.shoes].map(s => s || '-').join('|');
+function nwHair(p, k) {
+  const hs = HAIRSTYLES[Math.floor(nwRng(nwHash(nwKey(p, k) + '|hair'))() * HAIRSTYLES.length)];
+  return { hx: hs.hx || '', style: hs.style, clip: p.g === 'f' && nwRng(nwHash(nwKey(p, k) + '|clip'))() < .28 ? 1 : 0 };
+}
+function nwPalette(p, k, w) {
+  const o = {}, it = id => id && WITEM[id];
+  const t = it(w.top), b = it(w.bottom), s = it(w.shoes), h = it(w.hat), g = it(w.gl), a = it(w.acc);
+  if (t) Object.assign(o, { topS: t.style, c: t.c, C: t.C, a: t.a });
+  if (b) Object.assign(o, { botS: b.style, p: b.c, skirt: NW_SKIRT.has(b.style) ? 1 : 0 }); else o.skirt = 0;
+  if (s) Object.assign(o, { shoeS: s.style, f: shade(s.c, -40) });
+  if (h) Object.assign(o, { hatS: h.style, hatC: h.c });
+  if (g) o.glS = g.style;
+  if (a) Object.assign(o, { accS: a.style, accC: a.c });
+  return Object.assign(o, nwHair(p, k));
+}
+function npcWear(p, k) {
+  const group = nwGroup(p), key = nwKey(p, k) + '|' + group;
+  if (NW_CACHE.has(key)) return NW_CACHE.get(key);
+  let w = null, sig = '', core = '';
+  const accept = (c, advance) => {
+    w = c; sig = nwSig(c); core = nwCore(c);
+    for (const slot of NW_SLOTS) if (c[slot]) { const sk = group + '|' + slot; NW_POS[sk] = (NW_POS[sk] + advance) % NW_ORDER[sk].length; }
+  };
+  for (let attempt = 0; attempt < 512; attempt++) {
+    const c = nwCandidate(p, k, group, attempt);              // prefer a fresh full outfit and fresh core clothes
+    if (NW_USED.has(nwSig(c)) || NW_USED_CORE.has(nwCore(c))) continue;
+    accept(c, attempt + 1); break;
+  }
+  if (!w) for (let attempt = 0; attempt < 512; attempt++) {   // core combinations ran out: keep outfits distinct via extras
+    const c = nwCandidate(p, k, group, attempt);
+    if (NW_USED.has(nwSig(c))) continue;
+    accept(c, attempt + 1); break;
+  }
+  if (!w) accept(nwCandidate(p, k, group, 0), 1);              // every combination worn: allow a repeat
+  const o = nwPalette(p, k, w);
+  NW_CACHE.set(key, o); NW_USED.add(sig); NW_USED_CORE.add(core);
+  return o;
+}
 console.assert(LOOKS.every(L => [...lookIds(L, 'm'), ...lookIds(L, 'f')].every(id => WITEM[id]) && HX[L.hair.m] && HX[L.hair.f]), 'every look piece exists');
 console.assert(Object.values(WITEM).every(i => i.slot !== 'top' || i.style === 'tee' || TOPFX[i.style]), 'every top is drawable');

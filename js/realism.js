@@ -1,12 +1,12 @@
 'use strict';
-// Realism: bladder, stress, sleep debt, weight, injuries, food poisoning and colds, mood buffs/debuffs (moodlets);
+// Realism: stress, sleep debt, weight, injuries, food poisoning and colds, mood buffs/debuffs (moodlets);
 // money: loans with a credit score, utility bills from what you actually use, yearly inflation.
-const B = () => st.body || (st.body = { bladder: 85, stress: 15, kg: 55, awake: 0, injured: 0 });
+const B = () => st.body || (st.body = { stress: 15, kg: 55, awake: 0, injured: 0 });
 const ML = () => st.moodlets || (st.moodlets = []);
 // ---- moodlets ----
 const MOODLETS = {
   warm: ['🤗', 'อบอุ่นใจ', 4, 3], love: ['💕', 'หัวใจพองโต', 6, 6], sweet: ['💞', 'คืนแสนหวาน', 6, 10], angry: ['💢', 'โกรธจัด', -6, 3], hurt: ['💔', 'เสียใจ', -5, 6],
-  shame: ['😳', 'อับอายขายหน้า', -8, 4], rested: ['😌', 'นอนอิ่ม', 3, 6], tired: ['🥱', 'อดนอน', -4, 0], hungry: ['😠', 'หิวจนหงุดหงิด', -5, 0], smelly: ['🤢', 'ตัวเหม็น', -3, 0],
+  rested: ['😌', 'นอนอิ่ม', 3, 6], tired: ['🥱', 'อดนอน', -4, 0], hungry: ['😠', 'หิวจนหงุดหงิด', -5, 0],
   stressed: ['😰', 'เครียดมาก', -5, 0], injured: ['🩹', 'บาดเจ็บ', -3, 0], grief: ['🖤', 'เศร้าโศก', -6, 72], broke: ['💸', 'กังวลเรื่องเงิน', -4, 24], heavy: ['🍩', 'น้ำหนักเกิน', -2, 0], fun: ['🎉', 'สนุกสุดๆ', 5, 4],
 };
 function addMood(id, hours) { const M = MOODLETS[id]; if (!M) return; const L = ML(), until = st.min + (hours ?? M[3]) * 60, m = L.find(x => x.id === id); if (m) m.until = Math.max(m.until, until); else L.push({ id, until }); }
@@ -14,18 +14,17 @@ const hasMood = id => ML().some(m => m.id === id);
 var stressAdd = n => { const b = B(); b.stress = Math.max(0, Math.min(100, b.stress + n)); };
 function needMoods() {   // condition-based moodlets live while the condition holds
   const b = B(), set = (id, on) => { const L = ML(), i = L.findIndex(m => m.id === id); if (on && i < 0) L.push({ id, until: Infinity }); if (!on && i >= 0 && L[i].until === Infinity) L.splice(i, 1); };
-  set('tired', b.awake > 20 * 60); set('hungry', st.food < 15); set('smelly', st.clean < 15); set('stressed', b.stress >= 70); set('injured', b.injured > day()); set('heavy', b.kg > 90);
+  set('tired', b.awake > 20 * 60); set('hungry', st.food < 15); set('stressed', b.stress >= 70); set('injured', b.injured > day()); set('heavy', b.kg > 90);
 }
 // ---- per-minute body simulation ----
 const _tick17 = tick;
 tick = m => {
   _tick17(m); const b = B();
-  b.bladder -= m * .08 * (st.sick?.kind === 'อาหารเป็นพิษ' ? 2 : 1); b.awake += m;
+  b.awake += m;
   b.stress += m * (st.mood < 40 ? .012 : st.mood > 75 ? -.012 : 0) + (b.awake > 20 * 60 ? m * .01 : 0);
   if (b.awake > 20 * 60) st.energy -= m * .03;
   b.stress = Math.max(0, Math.min(100, b.stress)); b.kg = Math.max(35, Math.min(140, b.kg - m * .0001));
   if (b.injured > day()) st.energy = Math.min(st.energy, 70);
-  if (b.bladder <= 0) { b.bladder = 100; st.clean = Math.max(0, st.clean - 50); addMood('shame'); toast('😳 ไม่ทันเข้าห้องน้ำ! ตัวเปียกและอายมาก'); }
   let dm2 = 0; for (const x of ML()) dm2 += MOODLETS[x.id][2]; st.mood += dm2 * m / 60;
   const L = ML(); for (let i = L.length - 1; i >= 0; i--) if (L[i].until < st.min) L.splice(i, 1);
   needMoods(); clamp();
@@ -40,10 +39,7 @@ eat = id => {
   if ((id === 'meat' || id === 'egg') && Math.random() < .25 && !st.sick) { st.sick = { until: day() + 1, kind: 'อาหารเป็นพิษ' }; toast('🤢 กินของดิบเข้าไป อาหารเป็นพิษ! (วิตามินหรือคลินิกช่วยได้)'); }
   _eat17(id);
 };
-// ---- bathrooms ----
-const toilet = () => { B().bladder = 100; tick(5); say('🚽 โล่งสบาย'); };
-for (const k of ['tub', 'sink']) { const f = FURN_ACTS[k]; if (f) FURN_ACTS[k] = F => [['🚽 เข้าห้องน้ำ', toilet], ...f(F)]; }
-for (const name of ['คาเฟ่', 'มินิมาร์ท', 'คลินิก', 'ห้องสมุด']) for (const t of town.targets.filter(t => t.name === name)) { const d = Object.getOwnPropertyDescriptor(t, 'opts'), base = d.get ? d.get : () => d.value; Object.defineProperty(t, 'opts', { get: () => [...base.call(t), ['🚻 ห้องน้ำสาธารณะ', toilet]], configurable: true }); }
+// ---- clinic, stress relief and injuries ----
 { const t = town.targets.find(t => t.name === 'คลินิก'); if (t) { const d = Object.getOwnPropertyDescriptor(t, 'opts'), base = d.get ? d.get : () => d.value;
   Object.defineProperty(t, 'opts', { get: () => [...(B().injured > day() ? [['🩹 รักษาแผล ฿80', () => { if (st.money < 80) return say('เงินไม่พอ'); st.money -= 80; B().injured = 0; tick(40); toast('🩹 แผลหายดีแล้ว'); }]] : []), ['🧠 ปรึกษานักจิตวิทยา ฿120', () => { if (st.money < 120) return say('เงินไม่พอ'); st.money -= 120; stressAdd(-35); tick(60); say('ได้ระบายแล้ว เครียดลดลงเยอะ'); }], ...base.call(t)], configurable: true }); } }
 // colds in the rain, injuries from fights, the mine and contests
@@ -89,8 +85,8 @@ if (typeof APP !== 'undefined' && APP.bank) {
 // ---- HUD line ----
 const _hud17 = drawHud;
 drawHud = () => {
-  _hud17(); const b = B(), icons = ML().map(m => MOODLETS[m.id][0]).join('');
-  hud.insertAdjacentHTML('beforeend', `<div class="row" style="font-size:12px"><span>🚽 ${Math.round(b.bladder)} · 😰 ${Math.round(b.stress)} · ⚖️ ${b.kg.toFixed(1)}กก.</span><span>${icons}${st.sick ? ' 🤒' + (st.sick.kind || '') : ''}</span></div>`);
+  _hud17(); const b = B(), icons = ML().map(m => MOODLETS[m.id][0]).join(''), d = hud.querySelector('.details');
+  if (d) d.insertAdjacentHTML('beforeend', `<div class="row" style="font-size:12px"><span>😰 เครียด ${Math.round(b.stress)} · ⚖️ ${b.kg.toFixed(1)}กก.</span><span>${icons}${st.sick ? ' 🤒' + (st.sick.kind || '') : ''}</span></div>`);
 };
 ACH.push(['zen', '🧘 ใจเย็น', 'ความเครียดเหลือ 0', () => B().stress <= 0], ['debtfree', '💳 หนี้หมด', 'ปิดเงินกู้ครบ', () => LOAN().used && !LOAN().bal]);
 console.assert(Object.values(MOODLETS).every(m => m.length === 4), 'moodlet table');

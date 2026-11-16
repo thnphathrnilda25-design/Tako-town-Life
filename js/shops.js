@@ -28,9 +28,9 @@ town.targets.push(
   { ...spot(bld('flower')), name: 'ร้านดอกไม้', opts: [['ร้านค้า', () => shopPanel('🌷 ร้านดอกไม้', ['flower', 'bouquet', 'ring', 'seedflower', 'seedveg', 'seedberry'])]] },
   { ...spot(bld('toy')), name: 'ร้านของเล่น', opts: [['ร้านค้า', () => shopPanel('🧸 ร้านของเล่น', ['plush', 'robot', 'puzzle', 'kite'])]] },
   { ...spot(bld('clinic')), name: 'คลินิก', opts: [['วิตามินและของใช้', () => shopPanel('🏥 คลินิก', ['medicine'])], ['ตรวจสุขภาพ ฿50', pay(50, { energy: 30, mood: 5 }, 60, 'หมอบอกว่าคุณแข็งแรงดี!')],
-    ['นอนพักที่คลินิก ฿40', pay(40, { energy: 50, clean: 10 }, 180, 'ได้พักผ่อนเต็มที่')]] },
-  { ...spot(bld('gym')), name: 'ฟิตเนส', opts: [['ออกกำลังกาย ฿30', () => { if (st.energy < 20) return say('เหนื่อยเกินไป'); pay(30, { energy: -15, clean: -15, mood: 3 }, 60, 'ออกกำลังกายสนุกมาก!')(); xp('fit', 45); }],
-    ['เทรนเนอร์ส่วนตัว ฿100', () => { if (st.energy < 25) return say('เหนื่อยเกินไป'); pay(100, { energy: -20, clean: -18 }, 90, 'เทรนเนอร์ฝึกคุณหนักมาก!')(); xp('fit', 130); }]] },
+    ['นอนพักที่คลินิก ฿40', pay(40, { energy: 50 }, 180, 'ได้พักผ่อนเต็มที่')]] },
+  { ...spot(bld('gym')), name: 'ฟิตเนส', opts: [['ออกกำลังกาย ฿30', () => { if (st.energy < 20) return say('เหนื่อยเกินไป'); pay(30, { energy: -15, mood: 3 }, 60, 'ออกกำลังกายสนุกมาก!')(); xp('fit', 45); }],
+    ['เทรนเนอร์ส่วนตัว ฿100', () => { if (st.energy < 25) return say('เหนื่อยเกินไป'); pay(100, { energy: -20 }, 90, 'เทรนเนอร์ฝึกคุณหนักมาก!')(); xp('fit', 130); }]] },
   { ...spot(bld('library')), name: 'ห้องสมุด', get opts() { return [['อ่านหนังสือเงียบ ๆ 2 ชม.', () => { fx({ energy: -4, mood: 3 }); xp('logic', 30); tick(120); say('ที่นี่สงบจริง ๆ'); }],
     ['อ่านการ์ตูน', () => { fx({ mood: 10, energy: -2 }); tick(45); say('ฮ่า ๆ ตลกดี!'); }], ...(inSchool() ? [['ทำการบ้านที่นี่', homework]] : [])]; } },
   { ...spot(bld('cinema')), name: 'โรงหนัง', get opts() {

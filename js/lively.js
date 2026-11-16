@@ -104,7 +104,7 @@ start = saved => {
   for (let i = 0; i < 3; i++) {
     const base = CHARS[i % 4];
     folks.push({ x: (10 + i * 2) * T + 16, y: (21 + (i % 2)) * T + 24, dir: 0, frame: 0, at: 0, vx: 0, vy: 0, t: 0, talked: 0, age: 8,
-      spr: sheet({ ...base, style: i % 2 ? 'bob' : 'short', clip: 0, skirt: i % 2, c: pals[i], C: shade(pals[i], -40), a: '#fff4e8' }) });
+      spr: sheet({ ...base, style: i % 2 ? 'bob' : 'short', clip: 0, skirt: i % 2, c: pals[i], C: shade(pals[i], -40), a: '#fff4e8', ...npcWear({ id: 'park' + i, g: i % 2 ? 'f' : 'm', age: 8 }, 200 + i) }) });
   }
 };
 

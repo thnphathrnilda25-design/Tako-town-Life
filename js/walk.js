@@ -1,21 +1,67 @@
 'use strict';
 // Real NPC movement (A* around buildings) and real NPC lives: they age, change jobs, marry, have children, retire and pass away.
+// A* over the town grid. Reused typed arrays and a binary heap keep each search cheap, and a
+// per start/target-tile cache means the same commute (home -> work -> park) is solved once.
+let pfN = 0, pfG, pfFrom, pfClosed, pfStamp, pfHeap, pfKey, pfOpen = 0, pfId = 0;
+const pfCache = new Map();
+function pfPrepare() {
+  const n = town.W * town.H;
+  if (pfN === n) return;
+  pfN = n;
+  pfG = new Float32Array(n); pfFrom = new Int32Array(n); pfClosed = new Uint8Array(n);
+  pfStamp = new Uint32Array(n); pfHeap = new Int32Array(n * 8 + 16); pfKey = new Float64Array(n * 8 + 16); pfId = 0;
+  pfCache.clear();
+}
+function pfPush(node, f) {
+  let i = pfOpen++;
+  while (i > 0) { const p = (i - 1) >> 1; if (pfKey[p] <= f) break; pfHeap[i] = pfHeap[p]; pfKey[i] = pfKey[p]; i = p; }
+  pfHeap[i] = node; pfKey[i] = f;
+}
+function pfPop() {
+  const top = pfHeap[0], last = pfHeap[--pfOpen], k = pfKey[pfOpen];
+  let i = 0;
+  for (;;) {
+    let c = i * 2 + 1; if (c >= pfOpen) break;
+    if (c + 1 < pfOpen && pfKey[c + 1] < pfKey[c]) c++;
+    if (pfKey[c] >= k) break;
+    pfHeap[i] = pfHeap[c]; pfKey[i] = pfKey[c]; i = c;
+  }
+  pfHeap[i] = last; pfKey[i] = k; return top;
+}
 function findPath(sx, sy, tx, ty) {          // pixel coords -> pixel waypoints, or null when blocked
   const W = town.W, H = town.H, s = Math.floor(sy / T) * W + Math.floor(sx / T), t = Math.floor(ty / T) * W + Math.floor(tx / T);
   if (s === t) return [];
-  const g = new Float32Array(W * H).fill(1e9), from = new Int32Array(W * H).fill(-1), closed = new Uint8Array(W * H), open = [s];
-  g[s] = 0; const hf = i => Math.abs(i % W - t % W) + Math.abs(Math.floor(i / W) - Math.floor(t / W));
-  while (open.length) {                                    // shortcut: linear-scan open list, fine for a 40x30 grid
-    let bi = 0; for (let k = 1; k < open.length; k++) if (g[open[k]] + hf(open[k]) < g[open[bi]] + hf(open[bi])) bi = k;
-    const c = open.splice(bi, 1)[0]; if (c === t) break; if (closed[c]) continue; closed[c] = 1;
-    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-      const x = c % W + dx, y = Math.floor(c / W) + dy; if (x < 0 || y < 0 || x >= W || y >= H) continue;
-      const n = y * W + x, cost = g[c] + (town.tile[n] === 1 ? 4 : 1); if (town.solid[n] && n !== t) continue;
-      if (cost < g[n]) { g[n] = cost; from[n] = c; open.push(n); }
+  pfPrepare();
+  const key = s * pfN + t, hit = pfCache.get(key);
+  if (hit !== undefined) return hit && hit.slice();          // cache holds the shared canonical path
+  const id = ++pfId, hf = i => Math.abs(i % W - t % W) + Math.abs(Math.floor(i / W) - Math.floor(t / W));
+  const g = pfG, from = pfFrom, closed = pfClosed, stamp = pfStamp;
+  pfOpen = 0; stamp[s] = id; g[s] = 0; from[s] = -1; pfPush(s, hf(s));
+  closed.fill(0);
+  let found = false;
+  while (pfOpen) {
+    const c = pfPop();
+    if (closed[c]) continue;
+    if (c === t) { found = true; break; }
+    closed[c] = 1;
+    const cx = c % W, cy = Math.floor(c / W);
+    for (let k = 0; k < 4; k++) {
+      const x = cx + (k === 0 ? 1 : k === 1 ? -1 : 0), y = cy + (k === 2 ? 1 : k === 3 ? -1 : 0);
+      if (x < 0 || y < 0 || x >= W || y >= H) continue;
+      const n = y * W + x; if (closed[n] || (town.solid[n] && n !== t)) continue;
+      const cost = g[c] + (town.tile[n] === 1 ? 4 : 1);
+      if (stamp[n] !== id || cost < g[n]) { stamp[n] = id; g[n] = cost; from[n] = c; pfPush(n, cost + hf(n)); }
     }
   }
-  if (from[t] < 0) return null;
-  const path = []; for (let n = t; n !== s; n = from[n]) path.push({ x: n % W * T + 16, y: Math.floor(n / W) * T + 24 }); return path.reverse();
+  let path = null;
+  if (found) {
+    path = [];
+    for (let n = t; n !== s; n = from[n]) path.push({ x: n % W * T + 16, y: Math.floor(n / W) * T + 24 });
+    path.reverse();
+  }
+  if (pfCache.size > 600) pfCache.delete(pfCache.keys().next().value);   // keep the hot commutes
+  pfCache.set(key, path);
+  return path && path.slice();
 }
 // ---- personal lives: each townsperson has slightly different hours and a favourite hangout ----
 const ACT_IDX = {}; BUILDINGS.forEach((b, i) => { if (b.act) ACT_IDX[b.act] = i; });
@@ -156,7 +202,7 @@ function applyEvent(e, live) {
   if (e.t === 'die') { (st.gone || (st.gone = {}))[e.id] = 1; }
   if (e.t === 'birth' && !PEOPLE.some(p => p.id === e.id.toLowerCase())) {
     const r = newbornRecord(e); PEOPLE.push(r);
-    if (live) { const k = PEOPLE.length - 1, ent = { ...r, k, home: homeIdx(r, k), spots: {}, x: 0, y: 0, dir: 0, frame: 0, at: 0, spr: sheet(r.pal), slot: 'in', stuck: 0, person: 1 }; liveFields(ent, r, k + 50); people.push(ent); }
+    if (live) { const k = PEOPLE.length - 1, ent = { ...r, k, home: homeIdx(r, k), spots: {}, x: 0, y: 0, dir: 0, frame: 0, at: 0, spr: sheet({ ...r.pal, ...npcWear(r, k) }), slot: 'in', stuck: 0, person: 1 }; liveFields(ent, r, k + 50); people.push(ent); }
   }
 }
 const replayWorld = () => { for (const e of world().ev) applyEvent(e, false); };

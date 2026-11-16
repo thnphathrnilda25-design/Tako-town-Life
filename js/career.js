@@ -131,7 +131,7 @@ function careerApp() {
   const canWork = age() >= 16;
   if (!canWork) out.push(el('div', { className: 'sub' }, 'ต้องอายุ 16 ปีขึ้นไปจึงจะสมัครงานประจำได้ — ระหว่างนี้เรียนหนังสือหรือรับงานพิเศษก่อน'));
   for (const [jid, JJ] of Object.entries(JOBS)) {
-    if (st.job?.id === jid) continue;
+    if (st.job?.id === jid || JJ.remote) continue;   // online careers are listed in the online app
     out.push(row('💼', JJ.n, `${JJ.at} · ${JJ.start}:00–${JJ.end}:00 · เริ่ม ฿${JJ.pay[0]}/กะ · ${SKILLS[JJ.skill][0]}`, btn('สมัคร', () => applyCareer(jid), !canWork)));
   }
   return out;

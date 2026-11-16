@@ -34,7 +34,7 @@ function seasonTick() {
     if (f) toast(`${f.ic} วันนี้มี ${f.n} ที่ลานเมือง (10:00–24:00)`);
     if (weatherOf() === 'storm') toast('⛈️ พายุกำลังมา — ระวังตัวด้วย!');
   }
-  if (scene === town && wet() && !have('umbrella')) { st.clean = Math.max(0, st.clean - .6); st.mood = Math.max(0, st.mood - .15); }
+  if (scene === town && wet() && !have('umbrella')) { st.mood = Math.max(0, st.mood - .15); }
 }
 
 // ---- world decoration for festivals (drawn as sorted statics) ----
@@ -87,7 +87,7 @@ const festAct = (key, cost, run) => () => {
 };
 const FEST_ACTS = {
   water: () => [
-    ['เล่นสาดน้ำ 💦', festAct('splash', 0, () => { fx({ mood: 25, clean: -12, energy: -8 }); crowdBond(2); tick(60); say('เปียกโชกแต่หัวเราะกันสนุก!'); })],
+    ['เล่นสาดน้ำ 💦', festAct('splash', 0, () => { fx({ mood: 25, energy: -8 }); crowdBond(2); tick(60); say('เปียกโชกแต่หัวเราะกันสนุก!'); })],
     ['สรงน้ำพระ 🙏', festAct('pour', 20, () => { fx({ mood: 15, energy: -5 }); xp('charm', 15); tick(40); say('ได้ทำบุญสรงน้ำพระ ใจสงบขึ้น'); })],
     ['ก่อเจดีย์ทราย 🏖️', festAct('sand', 0, () => { fx({ mood: 12, energy: -12 }); xp('fit', 10); crowdBond(1); tick(45); say('เจดีย์ทรายสูงเท่าตัวเลย!'); })],
     ['ร้อยพวงมาลัย 🌼', festAct('garland', 30, () => { addItem('garland'); xp('charm', 12); fx({ mood: 8 }); tick(30); say('ได้พวงมาลัยหอม ๆ เป็นที่ระลึก'); })],

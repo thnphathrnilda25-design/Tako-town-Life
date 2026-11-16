@@ -44,8 +44,11 @@ const APPS = [['msg', '💬', 'ข้อความ'], ['cam', '📷', 'กล�
 function phonePanel() {
   if (busy || mg || ACT) return; pApp = null; pChat = null;
   openPanel('📱 โทรศัพท์', () => {
-    if (!pApp) return [el('div', { style: 'display:grid;grid-template-columns:repeat(4,1fr);gap:8px' }, ...APPS.map(([k, ic, n]) => el('button', { style: 'font-size:30px;padding:10px 4px;position:relative', onclick: () => { pApp = k; if (k === 'rel' && typeof pRel !== 'undefined') pRel = null; tick(1); refreshPanel(); } }, ic, el('div', { style: 'font-size:12px' }, n),
-      k === 'msg' && unread() ? el('span', { style: 'position:absolute;top:2px;right:6px;background:#e84a4a;border-radius:9px;font-size:11px;padding:0 6px' }, String(unread())) : null)))];
+    if (!pApp) return [el('div', { style: 'display:grid;grid-template-columns:repeat(4,1fr);gap:8px' }, ...APPS.map(([k, ic, n]) => {
+      const b = el('button', { style: 'font-size:30px;padding:10px 4px;position:relative', onclick: () => { pApp = k; if (k === 'rel' && typeof pRel !== 'undefined') pRel = null; tick(1); refreshPanel(); } }, ic, el('div', { style: 'font-size:12px' }, n),
+        k === 'msg' && unread() ? el('span', { style: 'position:absolute;top:2px;right:6px;background:#e84a4a;border-radius:9px;font-size:11px;padding:0 6px' }, String(unread())) : null);
+      b.dataset.app = k; return b;
+    }))];
     return [back(), ...APP[pApp]()];
   });
 }

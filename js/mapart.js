@@ -13,30 +13,34 @@ function thaiSign(text, cx, sy) {
   }
   const sm = g.imageSmoothingEnabled; g.imageSmoothingEnabled = true; g.drawImage(c, Math.round(cx - c.width / SS / 2), sy, c.width / SS, 20); g.imageSmoothingEnabled = sm;
 }
-// Map art and layout: the town keeps every building where it was, and grows south by 12 rows:
-// a cliff-lined river with three wooden bridges, a flower meadow and a forest edge. Roads become cobblestone,
-// pavements become dirt paths, buildings get gable tile roofs / timber or brick walls, new trees and scenery.
+// Map art and layout: the town keeps every building where it was and grows south into a
+// riverside residential lane: five new family homes on a dirt lane, a cliff-lined river with
+// three wooden bridges below them, and a forest edge at the very bottom.
 // Tile types: 0 grass, 1 cobblestone road, 2 dirt path, 3 meadow, 4 water, 5 bridge, 6 cliff, 7 forest path.
 {
-  const W = town.W, OH = town.H, NH = 42, ot = town.tile, os = town.solid;
-  town.H = NH; town.tile = new Uint8Array(W * NH); town.solid = new Uint8Array(W * NH);
+  const W = town.W, NH = town.H, ot = town.tile, os = town.solid;
+  town.tile = new Uint8Array(W * NH); town.solid = new Uint8Array(W * NH);
   town.tile.set(ot); town.solid.set(os);
   const ROADX = [6, 7, 20, 21, 34, 35];
-  for (let y = OH; y < NH; y++) for (let x = 0; x < W; x++) {
+  for (let y = 30; y < NH; y++) for (let x = 0; x < W; x++) {
     const road = ROADX.includes(x); let t;
-    if (y === 30) t = 1; else if (y === 31) t = 2;
-    else if (y === 32 || y === 36) t = road ? 5 : 6;
-    else if (y >= 33 && y <= 35) t = road ? 5 : 4;
-    else t = road ? 7 : (x >= 24 && x <= 31 && y >= 37 && y <= 38) ? 3 : 0;
+    if (y === 30) t = 1;
+    else if (y === 31) t = 2;
+    else if (y <= 35) t = road ? 1 : 0;                 // the new homes sit on this grass lane
+    else if (y === 36) t = 2;                           // riverside walk in front of the homes
+    else if (y === 37) t = road ? 5 : 6;
+    else if (y <= 40) t = road ? 5 : 4;
+    else if (y === 41) t = road ? 5 : 6;
+    else t = road ? 7 : (x >= 24 && x <= 31 && y >= 42) ? 3 : 0;
     town.tile[y * W + x] = t; if (t === 4 || t === 6) town.solid[y * W + x] = 1;
   }
 }
 const isGrassT = t => t === 0 || t === 3;
-// south forest edge and scattered trees
-for (let y = 37; y < 42; y++) for (let x = 0; x < town.W; x++) {
+// south forest edge and scattered trees (kept below the river)
+for (let y = 42; y < town.H; y++) for (let x = 0; x < town.W; x++) {
   const t = town.tile[y * town.W + x]; if (!isGrassT(t) || town.solid[y * town.W + x]) continue;
-  const dense = y >= 40 ? .85 : y === 39 ? .5 : .12;
-  if (Math.abs(x - 28) <= 3 && y <= 38) continue;                  // keep the meadow open
+  const dense = y >= 43 ? .85 : .35;
+  if (x >= 24 && x <= 31) continue;                                 // keep the meadow open
   if (rnd() < dense) { const tr = [x, y]; TREES.push(tr); setSolid(town, x, y); town.statics.push({ k: y * T + 28, f: () => drawTree(tr) }); }
 }
 // a forest band above the top edge, visible when the camera reaches the top of town
@@ -99,11 +103,11 @@ town.bg = '#3f8a3a';
 // ---- animated water sparkles, bridge rails, river fishing ----
 town.statics.push({ k: -1e5, f() {
   const t = now() / 600 | 0;
-  for (let i = 0; i < 26; i++) { const x = ((i * 157 + t * 13) % (town.W * T)), y = 33 * T + ((i * 41 + t * 7) % (3 * T)); if (town.tile[Math.floor(y / T) * town.W + Math.floor(x / T)] === 4) R('#ffffffcc', x, y, 3, 1); }
+  for (let i = 0; i < 26; i++) { const x = ((i * 157 + t * 13) % (town.W * T)), y = 38 * T + ((i * 41 + t * 7) % (3 * T)); if (town.tile[Math.floor(y / T) * town.W + Math.floor(x / T)] === 4) R('#ffffffcc', x, y, 3, 1); }
 } });
 for (const bx of [6, 20, 34]) for (const side of [0, 2]) { const X = (bx + side) * T - (side ? 4 : 0);
-  town.statics.push({ k: 36 * T + 30, f() { for (let y = 32 * T; y < 37 * T; y += 16) { R('#6a4220', X, y - 10, 4, 14); R('#8a5a2a', X, y - 10, 4, 2); } R('#8a5a2a', X, 32 * T - 8, 4, 5 * T); } }); }
-for (const bx of [6, 20, 34]) town.targets.push({ x: (bx + 1) * T, y: 34 * T + 16, name: 'สะพานข้ามแม่น้ำ', opts: [['🎣 ตกปลาในแม่น้ำ', () => startFishing()], ['🌅 ยืนชมวิว', () => { fx({ mood: 6 }); tick(15); say('เสียงน้ำไหลฟังสบายใจ'); }]] });
+  town.statics.push({ k: 41 * T + 30, f() { for (let y = 37 * T; y < 42 * T; y += 16) { R('#6a4220', X, y - 10, 4, 14); R('#8a5a2a', X, y - 10, 4, 2); } R('#8a5a2a', X, 37 * T - 8, 4, 5 * T); } }); }
+for (const bx of [6, 20, 34]) town.targets.push({ x: (bx + 1) * T, y: 39 * T + 16, name: 'สะพานข้ามแม่น้ำ', opts: [['🎣 ตกปลาในแม่น้ำ', () => startFishing()], ['🌅 ยืนชมวิว', () => { fx({ mood: 6 }); tick(15); say('เสียงน้ำไหลฟังสบายใจ'); }]] });
 // ---- scenery: bushes, rocks, flowers, stumps, tall grass (walk-through) ----
 const DECOR = [];
 for (let i = 0; i < 700 && DECOR.length < 110; i++) {
@@ -185,5 +189,5 @@ function drawBuilding(b) {
     const t = now() / 900; for (let i = 0; i < 3; i++) { const f = (t + i / 3) % 1; disc(cx + 5 + Math.round(Math.sin(t * 3 + i) * 3), rt - 18 - Math.round(f * 18), 2 + Math.round(f * 2), `rgba(230,230,235,${.6 - f * .5})`); }
   }
 }
-console.assert(town.H === 42 && town.tile[34 * town.W + 20] === 5 && town.solid[34 * town.W + 10] === 1, 'river and bridges laid out');
-console.assert(!blocked(town, 21 * T, 34 * T + 16), 'bridge is walkable');
+console.assert(town.H === 44 && town.tile[39 * town.W + 20] === 5 && town.solid[39 * town.W + 10] === 1, 'river and bridges laid out');
+console.assert(!blocked(town, 21 * T, 39 * T + 16), 'bridge is walkable');

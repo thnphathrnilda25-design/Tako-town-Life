@@ -84,7 +84,14 @@ const randomWear = (p, k) => ({ ...(k % 2 ? { hx: pickOf(HAIRX, k).hx, style: pi
   ...(k % 4 === 1 ? { botS: pickOf(['shorts', 'cargo', 'slacks', 'leggings'], k) } : {}), ...(k % 5 === 2 ? { hatS: pickOf(HATKEYS, k), hatC: COLS[k % 10][1] } : {}), ...(k % 6 === 3 ? { glS: pickOf(GLKEYS, k) } : {}), ...(k % 7 === 4 ? { accS: 'scarf', accC: COLS[(k + 2) % 10][1] } : {}) });
 var npcWear = randomWear;   // fashion.js swaps in style-themed outfits
 const _makePeople = makePeople;
-makePeople = () => { _makePeople(); people.forEach((p, k) => { p.spr = sheet({ ...p.pal, ...npcWear(p, k), bust: p.g === 'f' && p.age >= 18 }); }); };
+makePeople = () => {
+  _makePeople();
+  people.forEach((p, k) => { p.spr = sheet({ ...p.pal, ...npcWear(p, k), bust: p.g === 'f' && p.age >= 18 }); });
+  folks.forEach((f, i) => {                                  // six ambient wanderers share the same outfit pool
+    const a = CHARS[i % 4], b = CHARS[(i * 3 + 1) % 4], o = OUTFITS[(i + 2) % OUTFITS.length];
+    f.spr = sheet({ ...a, c: o.c || b.c, C: o.C || b.C, a: o.a || b.a, p: b.p, ...npcWear({ id: 'folk' + i, g: i % 2 ? 'f' : 'm', age: 20 + (i * 7) % 40 }, 400 + i) });
+  });
+};
 const _makeFamily = makeFamily;
 makeFamily = () => { _makeFamily(); fam.forEach((p, k) => { p.spr = sheet({ ...palOf(st.parents[p.id].look), ...npcWear(p, k + 11), bust: st.parents[p.id].g === 'f' }); p.h.spr = p.spr; }); };
 ACH.push(['closet', '👗 แฟชั่นนิสต้า', 'เป็นเจ้าของเสื้อผ้า 20 ชิ้น', () => Object.keys(st.owned || {}).length >= 20], ['restyle', '💇 ลุคใหม่', 'เปลี่ยนทรงผมที่ร้านเสริมสวย', () => !!st.wear?.hair]);

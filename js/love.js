@@ -90,7 +90,7 @@ function nameKid(k) {
 }
 const kidEnt = k => {
   const c = kidEnt.cache || (kidEnt.cache = {}), key = k.n + k.born;
-  if (!c[key]) { const p = { id: 'kid' + st.kids.indexOf(k), fam: 'kid', kid: k }; c[key] = { id: p.id, n: k.n, p, spr: sheet({ ...palOf(k.look), bust: k.g === 'f' && kidAge(k) >= 18 }), x: 4 * T + 16, y: 6 * T + 16, dir: 0, frame: 0, at: 0, vx: 0, vy: 0, t: 0, get label() { const a = kidAge(k); return a < 3 ? 'ทารก' : k.g === 'f' ? 'ลูกสาว' : 'ลูกชาย'; }, get age() { return kidAge(k); } }; }
+  if (!c[key]) { const p = { id: 'kid' + st.kids.indexOf(k), fam: 'kid', kid: k }; const kidAgeNow = kidAge(k); c[key] = { id: p.id, n: k.n, p, spr: sheet({ ...palOf(k.look), ...npcWear({ id: p.id, g: k.g, age: kidAgeNow }, 300 + st.kids.indexOf(k)), bust: k.g === 'f' && kidAgeNow >= 18 }), x: 4 * T + 16, y: 6 * T + 16, dir: 0, frame: 0, at: 0, vx: 0, vy: 0, t: 0, get label() { const a = kidAge(k); return a < 3 ? 'ทารก' : k.g === 'f' ? 'ลูกสาว' : 'ลูกชาย'; }, get age() { return kidAge(k); } }; }
   return c[key];
 };
 function kidEnts() {

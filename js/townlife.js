@@ -76,7 +76,7 @@ for (const [act, [name]] of Object.entries(SHOPS)) for (const t of town.targets.
   Object.defineProperty(t, 'opts', { configurable: true, get() {
     const o = base.call(t);
     if (shopOpen(act)) { const s = staffOf(act)[0]; return s ? [[`👋 คุยกับ${s.n} (${ROLE_NAME[s.role] || 'พนักงาน'})`, () => talk(s)], ...o] : o; }
-    return [[`🔒 ${name}ปิดแล้ว`, () => say(`${name}ปิดแล้ว พนักงานกลับบ้านกันหมด · ${hoursText(act)}`)], ...o.filter(([l]) => /งาน|กะ|ห้องน้ำ/.test(l))];
+    return [[`🔒 ${name}ปิดแล้ว`, () => say(`${name}ปิดแล้ว พนักงานกลับบ้านกันหมด · ${hoursText(act)}`)], ...o.filter(([l]) => /งาน|กะ/.test(l))];
   } });
 }
 
@@ -111,7 +111,6 @@ function noticeLine(p) {
   const r = relOf(p.id), rep = townRep(), Lk = lookNow(), b = typeof B === 'function' ? B() : {}, wanted = st.wanted?.lv || 0;
   if (wanted) return ['นั่นคนที่ตำรวจตามตัวอยู่นี่! 😨', 'scared'];
   if ((r.h || 0) >= 40) return ['…หึ', 'angry'];
-  if (st.clean < 20) return ['กลิ่นอะไรน่ะ… 😷', 'disgust'];
   if (b.injured > day()) return ['เจ็บตรงไหนรึเปล่า? ดูแลตัวเองด้วยนะ', 'care'];
   if (st.energy < 20) return ['ดูเหนื่อยๆ นะ พักผ่อนบ้าง', 'care'];
   if (Lk && hash01(p.k + day()) < .6) return [`ลุค${Lk.n.replace(/^\S+\s/u, '')}เท่มาก! 😍`, 'compliment'];

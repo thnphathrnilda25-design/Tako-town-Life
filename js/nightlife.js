@@ -40,7 +40,7 @@ function barOpts() {
 }
 for (const t of town.targets.filter(t => t.name === 'คาเฟ่')) {
   const d = Object.getOwnPropertyDescriptor(t, 'opts'), base = d.get ? d.get : () => d.value;
-  Object.defineProperty(t, 'opts', { configurable: true, get() { const o = base.call(t); return barOn() ? [['🌙 บาร์ยามค่ำ 19:00–01:00', () => say('ยามค่ำคาเฟ่กลายเป็นบาร์เล็กๆ มีดนตรีสดและคาราโอเกะ')], ...barOpts(), ...o.filter(([l]) => /งาน|กะ|ห้องน้ำ/.test(l))] : o; } });
+  Object.defineProperty(t, 'opts', { configurable: true, get() { const o = base.call(t); return barOn() ? [['🌙 บาร์ยามค่ำ 19:00–01:00', () => say('ยามค่ำคาเฟ่กลายเป็นบาร์เล็กๆ มีดนตรีสดและคาราโอเกะ')], ...barOpts(), ...o.filter(([l]) => /งาน|กะ/.test(l))] : o; } });
 }
 
 // ---- stargazing on the park bench ----
@@ -260,7 +260,7 @@ seasonTick = () => {
   const E = WEEKLY[weekday()]; if (E && !festival()) setTimeout(() => toast(`${E.ic} วันนี้มี${E.n} ${E.from}:00–${E.to}:00`), 1500);
 };
 const _hudNL = drawHud;
-drawHud = () => { _hudNL(); const w = st.wanted?.lv; if (w) hud.insertAdjacentHTML('beforeend', `<div class="row" style="font-size:12px;color:#ff9a9a"><span>🚨 ตำรวจตามตัว</span><span>${'⭐'.repeat(w)}</span></div>`); };
+drawHud = () => { _hudNL(); const w = st.wanted?.lv, d = hud.querySelector('.details'); if (w && d) d.insertAdjacentHTML('beforeend', `<div class="row" style="font-size:12px;color:#ff9a9a"><span>🚨 ตำรวจตามตัว</span><span>${'⭐'.repeat(w)}</span></div>`); };
 
 // ---- weather & light ----
 WX_ODDS[2] = [['sun', .38], ['cloud', .27], ['fog', .1], ['rain', .25]]; WX_ODDS[3] = [['sun', .3], ['cloud', .2], ['fog', .1], ['snow', .4]];

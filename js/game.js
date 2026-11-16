@@ -125,7 +125,7 @@ const FURN = {
   tv1: { n: 'ทีวี', w: 2, price: 0, cf: 2, cat: 'tv' }, tv2: { n: 'ทีวีจอยักษ์', w: 2, price: 1200, cf: 6, cat: 'tv', tier: 2, big: 1 },
   pc1: { n: 'คอมพิวเตอร์', w: 2, price: 0, cat: 'pc' }, pc2: { n: 'คอมเกมมิ่ง RGB', w: 2, price: 1500, cf: 3, cat: 'pc', tier: 2, gaming: 1 },
   sofa1: { n: 'โซฟา', w: 2, price: 0, cf: 3, cat: 'sofa', c: '#c05a4a' }, sofa2: { n: 'โซฟาหนังพรีเมียม', w: 2, price: 800, cf: 7, cat: 'sofa', tier: 2, c: '#7a4a2a' },
-  wardrobe: { n: 'ตู้เสื้อผ้า', price: 300, cf: 1, cat: 'wardrobe' }, tub: { n: 'อ่างอาบน้ำ', w: 2, price: 500, cf: 2, cat: 'tub' },
+  wardrobe: { n: 'ตู้เสื้อผ้า', price: 300, cf: 1, cat: 'wardrobe' }, tub: { n: 'อ่างน้ำอุ่น', w: 2, price: 500, cf: 2, cat: 'tub' },
   plant: { n: 'ต้นไม้กระถาง', price: 100, cf: 2, cat: 'plant' }, lamp: { n: 'โคมไฟตั้งพื้น', price: 120, cf: 3, cat: 'decor', d: 'lamp' },
   easel: { n: 'ขาตั้งวาดรูป', price: 300, cf: 2, cat: 'easel' }, treadmill: { n: 'ลู่วิ่ง', price: 700, cat: 'gym' },
   mirror: { n: 'กระจกบานใหญ่', price: 250, cf: 1, cat: 'mirror' }, piano: { n: 'เปียโน', w: 2, price: 2500, cf: 10, cat: 'piano' },
@@ -135,9 +135,9 @@ const FURN = {
   rug2: { n: 'พรมกลมสีฟ้า', w: 3, h: 2, price: 350, cf: 5, cat: 'decor', d: 'rug2', floor: 1 },
 };
 for (const k in FURN) FURN[k] = { w: 1, h: 1, cf: 0, tier: 1, d: FURN[k].cat, ...FURN[k] };
-const CATDESC = { bed: 'นอนฟื้นพลัง เกรดสูงได้ความสุขมากขึ้น', fridge: 'เก็บและกินอาหาร', stove: 'ทำอาหาร เกรดสูงได้ประสบการณ์ ×1.5 และอาหารอิ่มขึ้น', sink: 'ล้างหน้า',
+const CATDESC = { bed: 'นอนฟื้นพลัง เกรดสูงได้ความสุขมากขึ้น', fridge: 'เก็บและกินอาหาร', stove: 'ทำอาหาร เกรดสูงได้ประสบการณ์ ×1.5 และอาหารอิ่มขึ้น', sink: 'ล้างหน้าสดชื่น',
   shelf: 'อ่านหนังสือฝึกตรรกะ', tv: 'ดูทีวีเพิ่มความสุข', pc: 'ฟรีแลนซ์ เล่นเกม เรียนออนไลน์ ขายภาพ', sofa: 'นั่งพักฟื้นพลัง', wardrobe: 'เปลี่ยนชุด',
-  tub: 'อาบน้ำ', plant: 'รดน้ำทุกวันจนออกดอก', easel: 'วาดภาพ ฝึกศิลปะ', gym: 'วิ่งฝึกฟิตเนส', mirror: 'ฝึกพูด เพิ่มเสน่ห์', piano: 'เล่นเปียโน ฝึกศิลปะ+เสน่ห์',
+  tub: 'แช่น้ำอุ่นคลายเครียด', plant: 'รดน้ำทุกวันจนออกดอก', easel: 'วาดภาพ ฝึกศิลปะ', gym: 'วิ่งฝึกฟิตเนส', mirror: 'ฝึกพูด เพิ่มเสน่ห์', piano: 'เล่นเปียโน ฝึกศิลปะ+เสน่ห์',
   aquarium: 'ดูปลาผ่อนคลาย', decor: 'ของตกแต่ง' };
 const HOME_SIZES = [[12, 9, 0], [16, 9, 3000], [16, 12, 8000]];
 const DEFAULT_FURN = [['fridge', 0, 2], ['stove1', 1, 2], ['sink', 2, 2], ['shelf1', 4, 2], ['tv1', 5, 2], ['plant', 7, 2], ['wardrobe', 9, 2],
@@ -146,7 +146,7 @@ const WEEK = ['จันทร์', 'อังคาร', 'พุธ', 'พฤ�
 
 // ================= state =================
 function newState() {
-  return { v: 3, name: 'Player', look: null, parents: null, lastAge: 6, money: 300, famMoney: 700, energy: 80, food: 70, mood: 70, clean: 80, min: 8 * 60, char: 0, outfit: 0, plant: 0, watered: 0,
+  return { v: 3, name: 'Player', look: null, parents: null, lastAge: 6, money: 300, famMoney: 700, energy: 80, food: 70, mood: 70, min: 8 * 60, char: 0, outfit: 0, plant: 0, watered: 0,
     sk: { cook: 0, logic: 0, charm: 0, fit: 0, art: 0, fish: 0 }, inv: { egg: 2, rice: 2, veg: 2 }, store: {}, homeLv: 0,
     furn: DEFAULT_FURN.map(([id, x, y]) => ({ id, x, y })), job: null, rel: {}, partner: null, ach: {},
     stats: { shifts: 0, promos: 0, cooked: 0, furnBought: 0, gifts: 0, dates: 0, paintings: 0 } };
@@ -166,7 +166,7 @@ function addItem(id, n = 1) { st.inv[id] = have(id) + n; if (st.inv[id] <= 0) de
 
 // ================= scenes =================
 function makeScene(W, H) { return { W, H, tile: new Uint8Array(W * H), solid: new Uint8Array(W * H), statics: [], targets: [], ents: [] }; }
-const town = makeScene(40, 30), home = makeScene(12, 9);
+const town = makeScene(40, 44), home = makeScene(12, 9);   // taller map: the southern residential lane (Phase 3)
 function solidAt(sc, x, y) { const tx = Math.floor(x / T), ty = Math.floor(y / T); return tx < 0 || ty < 0 || tx >= sc.W || ty >= sc.H || sc.solid[ty * sc.W + tx] === 1; }
 function blocked(sc, x, y, avoidRoad) {
   for (const [a, b] of [[x - 8, y - 6], [x + 8, y - 6], [x - 8, y], [x + 8, y]])
@@ -218,6 +218,12 @@ const BUILDINGS = [
   { n: 'โบสถ์', x: 14, y: 13, w: 4, h: 3, wh: 92, wall: '#f4f0e8', roof: '#8a8a9a', sign: 'CHAPEL', act: 'chapel', door: '#8a5a34', curtain: '#8ab0e8' },
   { n: 'ที่ดินให้เช่า', x: 28, y: 13, w: 4, h: 3, wh: 58, wall: '#c8c4b8', roof: '#8a8a92', sign: 'FOR RENT', act: 'lot', door: '#6a6a72' },
   { n: 'ร้านทำผม', x: 0, y: 13, w: 4, h: 3, wh: 60, wall: '#e8e0f8', roof: '#6a4aa8', sign: 'SALON', act: 'salon', door: '#d84a8a' },
+  // southern residential lane (Phase 3): five more family homes, appended so old indices stay stable
+  { x: 0, y: 33, w: 4, h: 3, wh: 58, wall: '#e8d8f0', roof: '#7a4a8a', curtain: '#d0b0e8', chimney: 1 },
+  { x: 9, y: 33, w: 4, h: 3, wh: 58, wall: '#f0e0c8', roof: '#4a7a5a', curtain: '#a8d8b8', box: 1 },
+  { x: 15, y: 33, w: 4, h: 3, wh: 58, wall: '#d8e8f0', roof: '#b05a3a', curtain: '#f0c8a0' },
+  { x: 23, y: 33, w: 4, h: 3, wh: 58, wall: '#f8e0a8', roof: '#5a5a9a', curtain: '#c8c8f0', chimney: 1 },
+  { x: 28, y: 33, w: 4, h: 3, wh: 58, wall: '#f0c8d0', roof: '#3a7a7a', curtain: '#a8e0d8', box: 1 },
 ];
 for (const b of BUILDINGS) {
   setSolid(town, b.x, b.y, b.w, b.h);
@@ -283,7 +289,7 @@ function drawBuilding(b) {
   }
 }
 const TREES = [[9, 20], [11, 20], [14, 20], [18, 20], [9, 23], [18, 24], [9, 27], [13, 27], [16, 27], [18, 27]];
-const LAMPS = [[9, 15], [18, 15], [23, 15], [32, 15], [17, 25], [23, 27], [32, 27], [36, 15], [4, 15]];
+const LAMPS = [[9, 15], [18, 15], [23, 15], [32, 15], [17, 25], [23, 27], [32, 27], [36, 15], [4, 15], [5, 36], [14, 36], [33, 36]];
 const BENCHES = [[15, 21], [10, 25]];
 const TABLES = [[23, 13], [26, 13]];
 const GARDEN = [[11, 14], [12, 14], [13, 14], [11, 15], [12, 15], [13, 15]];   // community vegetable plots
@@ -643,9 +649,9 @@ function drawEnt(e) {
 }
 
 // ================= core systems =================
-const BARS = ['energy', 'food', 'mood', 'clean'];
+const BARS = ['energy', 'food', 'mood'];
 const clamp = () => { for (const k of BARS) st[k] = Math.max(0, Math.min(100, st[k])); };
-const COL = { money: '#7ee07e', energy: '#ffd54a', food: '#ff9a4a', mood: '#ff7ab8', clean: '#6ad0f0', xp: '#b89aff' };
+const COL = { money: '#7ee07e', energy: '#ffd54a', food: '#ff9a4a', mood: '#ff7ab8', xp: '#b89aff' };
 let floats = [];
 function float(s, c) { floats.push({ x: player.x, y: player.y - 40 - floats.filter(f => f.t > 1.2).length * 8, t: 1.4, s, c }); }
 function fx(d) { for (const k in d) { st[k] += d[k]; float((d[k] > 0 ? '+' : '') + Math.round(d[k]), COL[k]); } clamp(); }
@@ -660,8 +666,8 @@ function xp(s, n) {
 }
 function tick(m) {
   st.min += m;
-  st.energy -= m * 0.05 * (1 - lv('fit') * 0.04) * dm() * (st.sick ? 1.5 : 1); st.food -= m * 0.07 * dm(); st.clean -= m * 0.03 * dm();
-  if (st.food < 20 || st.energy < 20 || st.clean < 20) st.mood -= m * 0.06 * moodDrain();
+  st.energy -= m * 0.05 * (1 - lv('fit') * 0.04) * dm() * (st.sick ? 1.5 : 1); st.food -= m * 0.07 * dm();
+  if (st.food < 20 || st.energy < 20) st.mood -= m * 0.06 * moodDrain();
   else if (scene === home) st.mood += m * comfort * 0.0012;      // a cosy home lifts mood
   else if (typeof nRoom !== 'undefined' && scene === nRoom) st.mood += m * 0.002;
   if (st.food <= 0) st.energy -= m * 0.05;
@@ -683,7 +689,7 @@ function sleepNow(h, tier) {
   const d0 = day(), bonus = (tier - 1) * 3 + Math.round(comfort / 8) + restBonus();
   fade(() => {
     st.min += h * 60;
-    st.food -= h * 2.2; st.clean -= h * 0.9;
+    st.food -= h * 2.2;
     let gain, mood, msg;
     if (h === 2) { gain = 25 + bonus; mood = 2; msg = 'งีบสั้น ๆ สดชื่นขึ้น'; }
     else if (h === 4) { gain = 58 + bonus; mood = 5; msg = 'นอนครึ่งคืน ตื่นมาหัวโล่ง'; }
@@ -705,7 +711,7 @@ function skipToBirthday() {
   openMenu(`⏭️ ข้ามถึงวันเกิด (${days} วัน)`, [[`ใช่ — โตขึ้นเป็น ${a + 1} ปี`, () => {
     fade(() => {
       st.min = (next - 1) * 1440 + 7 * 60;
-      st.energy = 100; st.food = Math.max(st.food, 55); st.clean = Math.max(st.clean, 60); st.mood = Math.max(st.mood, 55); clamp();
+      st.energy = 100; st.food = Math.max(st.food, 55); st.mood = Math.max(st.mood, 55); clamp();
       save(); say(`ข้าม ${days} วัน — ตอนนี้อายุ ${age()} ปี`);
     }, 650);
   }], ['ไม่ข้าม', () => 0]]);
@@ -736,7 +742,7 @@ const FURN_ACTS = {
     ...(age() < 18 ? [['⏭️ ข้ามถึงวันเกิด (โตขึ้น 1 ปี)', skipToBirthday]] : [])],
   fridge: () => [['กินอาหาร', () => eatPanel()], ['ดูของในกระเป๋า', () => invPanel()]],
   stove: F => [['ทำอาหาร', () => cookPanel(F.tier)]],
-  sink: () => [['ล้างหน้า', () => { fx({ clean: 15 }); tick(5); say('สดชื่น!'); }]],
+  sink: () => [['ล้างหน้าสดชื่น', () => { fx({ mood: 2 }); tick(5); say('สดชื่น!'); }]],
   shelf: F => [['อ่านหนังสือ 1 ชม.', () => { fx({ energy: -4 }); xp('logic', 18 * F.tier); tick(60); say('ได้ความรู้ใหม่'); }]],
   tv: F => [['ดูการ์ตูน 1 ชม.', () => watch(() => { fx({ mood: 10 + F.tier * 5 }); tick(60); say('ตลกมาก ฮ่าๆ'); })],
     ['ดูข่าว 1 ชม.', () => watch(() => { fx({ mood: 2 }); xp('logic', 10); tick(60); say('รู้ทันข่าวสาร'); })]],
@@ -752,7 +758,7 @@ const FURN_ACTS = {
     }]],
   sofa: F => [['นั่งพัก 30 นาที', () => { fx({ energy: 6 * F.tier + 4, mood: 3 * F.tier }); tick(30); say('นั่งพักสบายๆ'); }]],
   wardrobe: () => [['เปลี่ยนชุด', () => { st.outfit = (st.outfit + 1) % OUTFITS.length; dressPlayer(); tick(5); fx({ mood: 3 }); say('ชุดใหม่ ดูดีมาก!'); }]],
-  tub: () => [['อาบน้ำ', () => { st.clean = 100; fx({ mood: 5 }); tick(30); say('อาบน้ำสะอาดสดชื่น'); }]],
+  tub: () => [['แช่น้ำอุ่นคลายเครียด 30 นาที', () => { fx({ mood: 8, energy: 2 }); if (typeof stressAdd === 'function') stressAdd(-10); tick(30); say('แช่น้ำอุ่นสบาย ผ่อนคลายสุด ๆ'); }]],
   plant: () => [['รดน้ำต้นไม้', () => {
     if (st.watered === day()) return say('วันนี้รดน้ำแล้ว พรุ่งนี้ค่อยรดใหม่');
     st.watered = day(); st.plant = Math.min(4, st.plant + 1); fx({ mood: st.plant >= 4 ? 15 : 5 }); tick(5);
@@ -762,7 +768,7 @@ const FURN_ACTS = {
     if (st.energy < 15) return say('เหนื่อยเกินไป');
     fade(() => { fx({ energy: -10, mood: 6 }); xp('art', 28); addItem('painting'); st.stats.paintings++; tick(90); say(`วาดภาพเสร็จ! ขายได้ราว ฿${40 + lv('art') * 30}`); }, 500);
   }]],
-  gym: () => [['วิ่งบนลู่ 1 ชม.', () => { if (st.energy < 20) return say('เหนื่อยเกินไป'); fx({ energy: -15, clean: -20, mood: 4 }); xp('fit', 30); tick(60); say('เหงื่อท่วมตัว แต่แข็งแรงขึ้น!'); }]],
+  gym: () => [['วิ่งบนลู่ 1 ชม.', () => { if (st.energy < 20) return say('เหนื่อยเกินไป'); fx({ energy: -15, mood: 4 }); xp('fit', 30); tick(60); say('เหงื่อท่วมตัว แต่แข็งแรงขึ้น!'); }]],
   mirror: () => [['ฝึกพูดหน้ากระจก', () => { fx({ energy: -3 }); xp('charm', 22); tick(45); say('มั่นใจขึ้นเยอะเลย'); }]],
   piano: () => [['เล่นเปียโน 1 ชม.', () => { fx({ mood: 10, energy: -5 }); xp('art', 15); xp('charm', 10); tick(60); say('เพลงไพเราะมาก ♪'); }]],
   aquarium: () => [['นั่งดูปลา', () => { fx({ mood: 8, energy: 3 }); tick(20); say('ปลาว่ายไปมา ผ่อนคลายจัง'); }]],
@@ -833,11 +839,12 @@ function talk(p) {
   const r = relOf(p.id); p.dir = faceTo(p, player);
   if (r.talk === day()) return say(`${p.n}: "วันนี้คุยกันแล้วน้า ไว้พรุ่งนี้นะ"`);
   r.talk = day();
-  const gain = 3 + kindBonus() + lv('charm') * 0.6 + (st.partner === p.id ? 3 : 0) - (st.clean < 25 ? 3 : 0);
+  const gain = 3 + kindBonus() + lv('charm') * 0.6 + (st.partner === p.id ? 3 : 0);
   r.f = Math.max(0, Math.min(100, r.f + gain)); fx({ mood: st.partner === p.id ? 10 : 5 }); xp('charm', 10); tick(10);
   let line;
-  if (st.clean < 25) line = 'เอ่อ... ไปอาบน้ำก่อนไหม';
-  else if (r.f < 20) line = 'สวัสดี... เราเพิ่งรู้จักกันเนอะ';
+  if (r.f >= 60 && rnd() < .35) {
+    line = 'แกดูสดใสจัง วันนี้มีอะไรดี ๆ เกิดขึ้นเหรอ';
+  } else if (r.f < 20) line = 'สวัสดี... เราเพิ่งรู้จักกันเนอะ';
   else if (r.f >= 40 && rnd() < .4) {
     const secret = [...p.love, ...p.like].find(i => !r.known.includes(i));
     line = secret ? `บอกความลับนะ ฉันชอบ${ITEMS[secret].n}มากเลย` : p.says[rnd() * p.says.length | 0];
@@ -943,7 +950,7 @@ function drawHud() {
     <div class="row"><span>📍 ${scene.name}</span><span style="color:${COL.money}">฿${st.money}${age() < 18 && st.famMoney ? ' 👪' : ''}</span></div>
     <div class="row"><span>💼 ${job}</span>${scene === home ? `<span>🏡 ${comfort}</span>` : (typeof nRoom !== 'undefined' && scene === nRoom && typeof visit !== 'undefined' && visit) ? `<span>🏠 ${visit.name}</span>` : ''}</div>` +
     bar('⚡', 'พลังงาน', st.energy, COL.energy) + bar('🍙', 'ความอิ่ม', st.food, COL.food) +
-    bar('💗', 'ความสุข', st.mood, COL.mood) + bar('🛁', 'ความสะอาด', st.clean, COL.clean) +
+    bar('💗', 'ความสุข', st.mood, COL.mood) +
     (typeof dayGoalsMarkup === 'function' ? dayGoalsMarkup() : '');
   hud.innerHTML = `<button class="fold" onclick="toggleHud()" aria-expanded="${hudExpanded}" title="${hudExpanded ? 'ย่อแผงสถานะ' : 'ขยายแผงสถานะ'}"><span>👤 ${st.name} · ${age()} ปี　${WEEK[weekday()]} ${day()}</span><span>${hh}:${mm} · ฿${st.money} ${hudExpanded ? '▴' : '▾'}</span></button>${hudExpanded ? `<div class="details">${details}</div>` : ''}`;
 }
@@ -1196,7 +1203,7 @@ town.targets.push(
   { ...pt(BUILDINGS[5]), name: 'ร้านเฟอร์นิเจอร์', opts: [['ดูสินค้า / ขยายบ้าน', furniPanel]] },
   ...BENCHES.map(([x, y]) => ({ x: (x + 1) * T, y: (y + 1) * T + 12, name: 'ม้านั่งในสวน', opts: [
     ['นั่งพัก 1 ชม.', () => { fx({ mood: 15, energy: 8 }); tick(60); say('ลมเย็นสบาย'); }],
-    ['วิ่งออกกำลังกาย 1 ชม.', () => { if (st.energy < 20) return say('เหนื่อยเกินไป'); fx({ energy: -15, clean: -20, mood: 5 }); xp('fit', 25); tick(60); say('วิ่งรอบสวนจนเหงื่อซึม'); }],
+    ['วิ่งออกกำลังกาย 1 ชม.', () => { if (st.energy < 20) return say('เหนื่อยเกินไป'); fx({ energy: -15, mood: 5 }); xp('fit', 25); tick(60); say('วิ่งรอบสวนจนเหงื่อซึม'); }],
     ['สเก็ตช์ภาพวิว 1 ชม.', () => { fx({ mood: 6, energy: -5 }); xp('art', 15); tick(60); say('ได้ภาพสเก็ตช์สวยๆ'); }]] })),
   { x: 14 * T, y: 26 * T + 12, name: 'บ่อปลา', opts: [['ให้อาหารปลา', () => { fx({ mood: 6 }); tick(10); say('ปลาคาร์ปว่ายมากินเต็มเลย'); }]] },
 );

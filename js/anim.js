@@ -2,7 +2,7 @@
 // Activity animations: while a short action plays the player faces the camera, props animate in their hands and a progress bar fills.
 // doAct(kind, fn) locks input, plays the animation, then runs fn (the original action) so game logic is unchanged.
 const ACT_DUR = { cook: 1800, wash: 1100, read: 1700, tv: 1700, type: 1700, sit: 1300, bath: 1900, water: 1300, paint: 2200, run: 1900, piano: 2000, lift: 1900, dig: 1300, sleep: 2200, talk: 1300, eat: 1200 };
-const ACT_NAME = { cook: 'กำลังทำอาหาร', wash: 'ล้างจาน', read: 'กำลังอ่าน', tv: 'ดูทีวี', type: 'ใช้คอมพิวเตอร์', sit: 'นั่งพัก', bath: 'อาบน้ำ', water: 'รดน้ำ', paint: 'วาดรูป', run: 'วิ่ง', piano: 'เล่นเปียโน', lift: 'ยกเวท', dig: 'ขุด', sleep: 'นอนหลับ', talk: 'พูดคุย', eat: 'กิน' };
+const ACT_NAME = { cook: 'กำลังทำอาหาร', wash: 'ล้างจาน', read: 'กำลังอ่าน', tv: 'ดูทีวี', type: 'ใช้คอมพิวเตอร์', sit: 'นั่งพัก', bath: 'แช่น้ำอุ่น', water: 'รดน้ำ', paint: 'วาดรูป', run: 'วิ่ง', piano: 'เล่นเปียโน', lift: 'ยกเวท', dig: 'ขุด', sleep: 'นอนหลับ', talk: 'พูดคุย', eat: 'กิน' };
 let ACT = null;
 const progEl = el('div', { id: 'prog', className: 'panel', hidden: true, style: 'position:fixed;left:50%;bottom:120px;transform:translateX(-50%);padding:8px 14px;min-width:200px;text-align:center;font-size:14px;z-index:2' },
   el('div', { id: 'progL' }), el('div', { className: 'bar', style: 'height:9px;margin:5px 0 0' }, el('i', { id: 'progF', style: 'width:0;background:#7ee07e' })));

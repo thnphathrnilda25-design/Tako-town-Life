@@ -73,6 +73,6 @@ function playerDies() {
     btn('เริ่มชีวิตใหม่ (ลบเซฟช่องนี้)', () => { localStorage.removeItem(slotKey(SLOT)); location.reload(); })]);
 }
 const _sT18 = seasonTick; seasonTick = () => { _sT18(); socialDaily(); dieCheck(); };
-const _hud18 = drawHud; drawHud = () => { _hud18(); hud.insertAdjacentHTML('beforeend', `<div class="row" style="font-size:12px"><span>🏙️ ชื่อเสียงในเมือง</span><span>${townRep()}</span></div>`); };
+const _hud18 = drawHud; drawHud = () => { _hud18(); const d = hud.querySelector('.details'); if (d) d.insertAdjacentHTML('beforeend', `<div class="row" style="font-size:12px"><span>🏙️ ชื่อเสียงในเมือง</span><span>${townRep()}</span></div>`); };
 ACH.push(['beloved', '🌟 ที่รักของเมือง', 'ชื่อเสียงในเมือง 40+', () => townRep() >= 40], ['legacy', '🕯️ มรดก', 'ตัวละครเสียชีวิตและส่งต่อรุ่น', () => !!st.torched]);
 console.assert(typeof remember === 'function' && typeof aff === 'function', 'memory ready');
