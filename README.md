@@ -55,6 +55,7 @@ Then open `http://localhost:8765/pixel-town-32.html`.
 | `js/career.js` | Career app and odd jobs: job status, promotion ladder, apply/quit, two paid gigs per day, and civic wage-policy bonuses. |
 | `js/tech.js` | Five online career tracks (programmer, game developer, YouTube creator, streamer, graphic designer) worked from the home PC, a daily four-offer online gig board, portfolio rank and followers, PC/phone integration and four achievements. |
 | `js/tutorial.js` | Guided nine-step onboarding quest (walk, HUD, phone, online app, apply, first remote shift, first online gig, sleep, save) with a floating tracker, world marker and screen-edge compass, pulsing target buttons, skip/close, and replay from the phone's 🧭 app. |
+| `js/lighting.js` | Cinematic lighting pass: smooth time-of-day colour grading, street-lamp cones and pools, lit-window spill tied to residents who are actually awake and shops that are actually open, neon sign glow, car head/tail lights, wet-road reflections, moon/sun beams through house windows, and warm lamp/TV light in interiors. Cached gradient sprites keep it cheap; `game.js` calls `ambientPass`/`lightPass` only when they exist, so the old flat overlay is still the fallback. |
 | `js/income.js` | Extra income: a daily three-job side board with an all-three bonus, three online freelance offers per day, a four-asset investment market with daily prices, and a daily check-in streak. Adds phone apps, a PC shortcut and a board in the plaza. |
 | `js/system.js` | Title screen with save slots, pause menu, settings. |
 
@@ -66,7 +67,7 @@ Then open `http://localhost:8765/pixel-town-32.html`.
 people, game, mapart, wearart, life, seasons, school, shops, pets, wardrobe, fashion,
 minis, anim, love, phone, walk, dialog, events, audio, collect, biz, quests, adventure,
 mayor, talkbox, goals, wallet, lively, homes, family, collections, career, tech, income,
-housing, social, memory, realism, townlife, npclife, npcdeep, npcmove, nightlife, tutorial, system
+housing, social, memory, realism, townlife, npclife, npcdeep, npcmove, nightlife, tutorial, lighting, system
 ```
 
 Modules are plain scripts that share one global scope. A later module can replace or wrap an earlier one's functions (for example `talk`, `say`, `updatePerson`, `personOpts`, `seasonTick`, `lifeTick`, `drawEnt`, `update`). Changing the order will break things. Add new modules before `system.js`, and register them in the array at the bottom of the HTML.
@@ -74,6 +75,7 @@ Modules are plain scripts that share one global scope. A later module can replac
 ## Architecture notes
 
 - **Rendering:** everything draws to one 2D canvas. `render()` in `game.js` sorts sprites and buildings by their `y` so that things further down the screen draw on top.
+- **Lighting:** `lighting.js` is the final presentation layer. `game.js` calls `ambientPass(sc, d, camX, camY)` after the world is drawn (smooth dawn/day/dusk/night gradient instead of one flat navy rectangle), then `overlayFx` draws weather, then `lightPass(sc, camX, camY, d)` paints artificial light on top so lamps and windows still glow through rain and fog. Light sprites and lamp cones are cached canvases; window spill reads `TL.lit` (awake residents) and `shopOpen()` so only genuinely lit rooms throw light. Interiors get warm lamp pools, TV flicker and window beams; the mine gets a torch and a cave vignette. With no lighting module, or if it fails to load, `render()` falls back to the old flat overlay and radial glows.
 - **Scenes:** `town`, `home`, `nRoom` (a visited neighbour's living room) and `mine`. Each is a scene object with `W`, `H`, `tile`, `solid`, `statics`, `targets`, `ents`.
 - **Neighbour homes:** `homes.js` adds a door target to every non-shop building. A visit only opens when at least one resident is actually inside (`hidden` + `in`/`home` slot), so daytime knocks get a polite "come back in the evening". The interior is a 10×8 room rebuilt from the furniture catalogue, styled by the household head's trait, and up to four residents wander inside. Residents are frozen (`p.visiting`) while you are in their home. Praising the home is a once-a-day +3 relationship action, and the living room has a sofa (rest 30 minutes) and TV (watch together for an hour) target. Saving inside moves the save back to that home's town door.
 - **Relationship app:** `APP.rel` is added to the phone by `homes.js`. It lists townsfolk with relationship buckets (family/friend/love/acquaintance), shows household, head of house, likes, contact status, gift/talk counts, and can jump to messages or pin the home. The pinned home is drawn as a small heart on the phone map.
@@ -122,7 +124,7 @@ Modules contain `console.assert` checks at load time (item tables, placement, in
 | `js/memory.js` | NPC memories, memory lines in dialogue, gossip through friends, NPC-to-NPC friendships/feuds, town reputation, aging, parents' and player's death, funerals, inheritance. |
 | `js/realism.js` | Stress, sleep debt, weight, injuries, food poisoning/colds, moodlets, loans + credit score, utility bills by usage, yearly inflation. Bladder/bathroom/shower hygiene systems were removed. |
 
-Load order now ends with: `… career, tech, income, housing, social, memory, realism, townlife, npclife, npcdeep, npcmove, nightlife, tutorial, system`. Backup of the files before this update: `js.backup-before-sprites/`.
+Load order now ends with: `… career, tech, income, housing, social, memory, realism, townlife, npclife, npcdeep, npcmove, nightlife, tutorial, lighting, system`. Backup of the files before this update: `js.backup-before-sprites/`.
 
 ## Map redesign (`js/mapart.js`, loaded right after `game.js`)
 

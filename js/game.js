@@ -1271,18 +1271,22 @@ function render() {
   for (const f of floats) ptext(f.s, Math.round(f.x - ptw(f.s) / 2), Math.round(f.y - (1.4 - f.t) * 18), f.c);
   const d = sc === town ? darkness(hour()) : darkness(hour()) * .35;
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-  if (d) R(`rgba(18,20,64,${d})`, 0, 0, VW, VH);
   const h = hour();
-  if (sc === town && h >= 16.5 && h < 19) R('rgba(255,130,60,0.10)', 0, 0, VW, VH);
-  if (d > .15) {
-    ctx.globalCompositeOperation = 'lighter';
-    const glow = (x, y, r, a) => { const gr = ctx.createRadialGradient(x - cx, y - cy, 0, x - cx, y - cy, r); gr.addColorStop(0, `rgba(255,210,120,${a})`); gr.addColorStop(1, 'rgba(255,210,120,0)'); ctx.fillStyle = gr; ctx.fillRect(x - cx - r, y - cy - r, r * 2, r * 2); };
-    if (sc === town) { for (const [tx, ty] of LAMPS) glow(tx * T + 16, ty * T - 20, 60, .35); for (const c of CARS) glow(c.x + c.dir * 26, c.y - 12, 26, .3); }
-    else if (typeof nRoom !== 'undefined' && sc === nRoom) for (const l of nRoom.lamps) glow(l.x * T + 16, l.y * T - 18, 90, .3);
-    else for (const f of st.furn) if (FURN[f.id].d === 'lamp') glow(f.x * T + 16, f.y * T - 18, 90, .3);
-    ctx.globalCompositeOperation = 'source-over';
+  if (typeof ambientPass === 'function') ambientPass(sc, d, cx, cy);
+  else {
+    if (d) R(`rgba(18,20,64,${d})`, 0, 0, VW, VH);
+    if (sc === town && h >= 16.5 && h < 19) R('rgba(255,130,60,0.10)', 0, 0, VW, VH);
+    if (d > .15) {
+      ctx.globalCompositeOperation = 'lighter';
+      const glow = (x, y, r, a) => { const gr = ctx.createRadialGradient(x - cx, y - cy, 0, x - cx, y - cy, r); gr.addColorStop(0, `rgba(255,210,120,${a})`); gr.addColorStop(1, 'rgba(255,210,120,0)'); ctx.fillStyle = gr; ctx.fillRect(x - cx - r, y - cy - r, r * 2, r * 2); };
+      if (sc === town) { for (const [tx, ty] of LAMPS) glow(tx * T + 16, ty * T - 20, 60, .35); for (const c of CARS) glow(c.x + c.dir * 26, c.y - 12, 26, .3); }
+      else if (typeof nRoom !== 'undefined' && sc === nRoom) for (const l of nRoom.lamps) glow(l.x * T + 16, l.y * T - 18, 90, .3);
+      else for (const f of st.furn) if (FURN[f.id].d === 'lamp') glow(f.x * T + 16, f.y * T - 18, 90, .3);
+      ctx.globalCompositeOperation = 'source-over';
+    }
   }
   if (typeof overlayFx === 'function') overlayFx(sc);
+  if (typeof lightPass === 'function') lightPass(sc, cx, cy, d);
 }
 let last = 0;
 function loop(t) {

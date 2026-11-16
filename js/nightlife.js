@@ -286,8 +286,10 @@ overlayFx = sc => {
   }
   if (w === 'storm') { const ph = t % 7; if (ph < .3) { R(`rgba(255,255,255,${(.4 * (1 - ph / .3)).toFixed(2)})`, 0, 0, VW, VH); const k = Math.floor(t / 7); let x = hash01(k) * VW, y = 0;
     ctx.strokeStyle = 'rgba(255,255,240,.9)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x, y); while (y < VH * .6) { x += (hash01(k * 13 + y) - .5) * 30; y += 14 + hash01(y + k) * 10; ctx.lineTo(x, y); } ctx.stroke(); ctx.lineWidth = 1; } }
-  if (w === 'fog') { R('rgba(215,220,230,.22)', 0, 0, VW, VH); for (let i = 0; i < 4; i++) { const y = (i * VH / 4 + t * 6) % (VH + 60) - 30, gr = ctx.createLinearGradient(0, y - 30, 0, y + 30);
-    gr.addColorStop(0, 'rgba(230,235,240,0)'); gr.addColorStop(.5, 'rgba(230,235,240,.25)'); gr.addColorStop(1, 'rgba(230,235,240,0)'); ctx.fillStyle = gr; ctx.fillRect(0, y - 30, VW, 60); } }
+  if (w === 'fog') { const fogNight = dk > .3, fogCol = fogNight ? '120,132,158' : '230,235,240';
+    R(fogNight ? `rgba(52,60,82,${(.12 + dk * .16).toFixed(2)})` : 'rgba(215,220,230,.22)', 0, 0, VW, VH);
+    for (let i = 0; i < 4; i++) { const y = (i * VH / 4 + t * 6) % (VH + 60) - 30, gr = ctx.createLinearGradient(0, y - 30, 0, y + 30);
+      gr.addColorStop(0, `rgba(${fogCol},0)`); gr.addColorStop(.5, `rgba(${fogCol},${fogNight ? .18 : .25})`); gr.addColorStop(1, `rgba(${fogCol},0)`); ctx.fillStyle = gr; ctx.fillRect(0, y - 30, VW, 60); } }
   if (w === 'snow' || si === 3) for (let i = 0; i < (w === 'snow' ? 120 : 45); i++) { const s = 1 + (i % 3), x = (((i * 83) % VW + Math.sin(t * .8 + i) * 14 + t * 8 * s) % VW + VW) % VW, y = ((i * 47) % VH + t * (18 + s * 10)) % VH; R(i % 5 ? '#fff' : '#e0ecff', x | 0, y | 0, s, s); }
   if (si === 2 && !wet()) for (let i = 0; i < 22; i++) R(i % 2 ? '#e8802a' : '#f0b84a', ((i * 71) % VW + t * 22) % VW | 0, ((i * 53) % VH + t * 38 + Math.sin(t * 2 + i) * 6) % VH | 0, 3, 2);
   if (si === 0 && w === 'sun') for (let i = 0; i < 16; i++) R('#ffc8dc', ((i * 67) % VW + t * 14) % VW | 0, ((i * 59) % VH + t * 24) % VH | 0, 2, 2);
