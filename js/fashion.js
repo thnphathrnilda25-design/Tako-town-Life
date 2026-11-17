@@ -2,15 +2,19 @@
 // Fashion styles: drip, old money, kid, jacket, vintage, minimal and emo. New hairstyles, new clothing drawn in code,
 // curated-colour items, ready-made "looks" sold as a set, and townsfolk dressed in these styles.
 const SKC = p => p.sk || SK0;
+const _rgb = h => { const n = parseInt(h.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; };
+const _lum = h => { const [r, g, b] = _rgb(h); return .299 * r + .587 * g + .114 * b; };
+const _cdist = (a, b) => { const A = _rgb(a), B = _rgb(b); return Math.hypot(A[0] - B[0], A[1] - B[1], A[2] - B[2]); };
+const _shiftHex = (h, d) => { const [r, g, b] = _rgb(h), f = v => Math.max(0, Math.min(255, Math.round(v + d))); return '#' + [f(r), f(g), f(b)].map(v => v.toString(16).padStart(2, '0')).join(''); };
 // ---- hairstyles ----
 Object.assign(HX, {
   emo: (p, v, s) => { if (v === 'back') { R(p.h, 5, 14, 14, 3); for (const x of [6, 10, 14]) R(p.H, x, 17, 2, 1); return; }
-    if (s) { R(p.h, 12, 8, 5, 4); R(p.h, 13, 12, 3, 1); R(p.h, 4, 12, 5, 4); return; }
-    R(p.h, 6, 8, 7, 3); R(p.h, 7, 11, 4, 2); R(p.H, 8, 13, 2, 1); R(p.h, 4, 12, 2, 4); R(p.H, 18, 12, 2, 4); R(p.L, 8, 6, 3, 1); },
+    if (s) { R(p.h, 11, 7, 6, 3); R(p.h, 4, 11, 5, 4); return; }
+    R(p.h, 6, 7, 7, 2); R(p.H, 8, 9, 2, 1); R(p.h, 4, 11, 2, 4); R(p.H, 18, 11, 2, 4); R(p.L, 8, 5, 3, 1); },
   wolf: (p, v, s) => { if (v === 'back') { R(p.h, 5, 14, 14, 4); R(p.H, 4, 17, 3, 2); R(p.H, 17, 17, 3, 2); return; }
-    if (s) { R(p.h, 4, 12, 5, 6); R(p.H, 3, 17, 3, 2); R(p.h, 12, 8, 3, 2); return; }
-    R(p.h, 4, 9, 2, 7); R(p.H, 18, 9, 2, 7); R(p.h, 3, 15, 2, 2); R(p.H, 19, 15, 2, 2); for (const x of [7, 11, 15]) R(p.h, x, 9, 2, 2); },
-  curtain: (p, v, s) => { if (v === 'back' || s) return; R(SKC(p), 10, 8, 4, 2); R(p.H, 11, 3, 2, 5); R(p.h, 6, 9, 3, 2); R(p.h, 15, 9, 3, 2); R(p.h, 9, 8, 1, 1); R(p.h, 14, 8, 1, 1); },
+    if (s) { R(p.h, 4, 12, 5, 6); R(p.H, 3, 17, 3, 2); R(p.h, 12, 7, 3, 2); return; }
+    R(p.h, 4, 9, 2, 7); R(p.H, 18, 9, 2, 7); R(p.h, 3, 15, 2, 2); R(p.H, 19, 15, 2, 2); for (const x of [7, 11, 15]) R(p.h, x, 8, 2, 2); },
+  curtain: (p, v, s) => { if (v === 'back' || s) return; R(SKC(p), 10, 8, 4, 2); R(p.H, 11, 3, 2, 5); R(p.h, 6, 9, 3, 1); R(p.h, 15, 9, 3, 1); R(p.h, 9, 8, 1, 1); R(p.h, 14, 8, 1, 1); },
   oldmoney: (p, v, s) => { if (v === 'back') { R(p.L, 9, 4, 6, 1); return; } if (s) { R(p.L, 10, 4, 4, 1); return; }
     R(SKC(p), 7, 8, 10, 2); R(p.h, 6, 7, 12, 1); R(p.L, 8, 4, 3, 1); R(p.L, 12, 3, 3, 1); R(p.H, 10, 5, 4, 1); },
   mullet: (p, v, s) => { if (v === 'back') { R(p.h, 6, 14, 12, 5); R(p.H, 6, 18, 12, 1); } else if (s) R(p.h, 4, 13, 5, 6); else { R(p.h, 4, 12, 2, 6); R(p.H, 18, 12, 2, 6); } },
@@ -26,7 +30,7 @@ Object.assign(HX, {
   twoblock: (p, v, s) => { if (v === 'back') { R(p.H, 6, 14, 12, 1); return; } if (s) { R(p.h, 11, 8, 6, 2); R(shade(p.H, -20), 6, 11, 3, 4); return; }
     R(p.h, 6, 8, 12, 2); R(shade(p.H, -20), 5, 10, 2, 4); R(shade(p.H, -20), 17, 10, 2, 4); },
 });
-HAIRSTYLES.push(...[['emo', 'short', 'อีโมปิดตา'], ['wolf', 'short', 'วูล์ฟคัท'], ['curtain', 'short', 'แสกกลางม่านหน้าม้า'], ['oldmoney', 'short', 'หวีเสยผู้ดี'], ['mullet', 'short', 'มัลเล็ต'],
+HAIRSTYLES.push(...[['emo', 'short', 'อีโมหน้าม้าปัด'], ['wolf', 'short', 'วูล์ฟคัท'], ['curtain', 'short', 'แสกกลางม่านหน้าม้า'], ['oldmoney', 'short', 'หวีเสยผู้ดี'], ['mullet', 'short', 'มัลเล็ต'],
   ['hime', 'long', 'ฮิเมะคัท'], ['halfup', 'long', 'เกล้าครึ่งหัว'], ['locs', 'short', 'เดรดล็อก'], ['highpony', 'short', 'หางม้าสูง'], ['curlybob', 'bob', 'บ๊อบลอนหยิก'],
   ['manbun', 'short', 'แมนบัน'], ['midlong', 'long', 'แสกกลางยาว'], ['twoblock', 'short', 'ทูบล็อก']].map(([hx, style, n]) => ({ id: hx, n, style, hx, price: 150 })));
 // ---- tops (x0..x0+w on y 17..26; w 8 = side view) ----
@@ -232,6 +236,10 @@ function nwPalette(p, k, w) {
   if (h) Object.assign(o, { hatS: h.style, hatC: h.c });
   if (g) o.glS = g.style;
   if (a) Object.assign(o, { accS: a.style, accC: a.c });
+  if (t && p.pal && p.pal.h && p.pal.H && p.pal.L && _cdist(p.pal.h, t.c) < 45) {   // hair + top nearly the same colour: nudge the hair so the layers still read
+    const d = _lum(t.c) < 110 ? 35 : -35;
+    Object.assign(o, { h: _shiftHex(p.pal.h, d), H: _shiftHex(p.pal.H, d), L: _shiftHex(p.pal.L, d) });
+  }
   return Object.assign(o, nwHair(p, k));
 }
 function npcWear(p, k) {
