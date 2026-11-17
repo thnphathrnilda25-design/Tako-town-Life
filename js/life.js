@@ -141,7 +141,7 @@ function openCreator() {
     input.value = name; check();
   }
   input.oninput = () => { name = input.value = input.value.replace(/[^\u0E00-\u0E7FA-Za-z0-9 ]/g, ''); check(); };
-  go.onclick = () => { st = newState(); st.name = name.trim(); st.look = look; st.parents = makeParents(look); st.ageShift = startAge - 6; st.lastAge = startAge; start(); };
+  go.onclick = () => { st = newState(); st.name = name.trim(); st.look = look; st.parents = makeParents(look); st.ageShift = startAge - 6; st.lastAge = startAge; if (typeof clsApplyBirth === 'function') clsApplyBirth(BIRTH_PICK); start(); };
   const dice = el('button', { textContent: '🎲 สุ่มหน้าตา', onclick: () => { Object.assign(look, randomLook(look.g)); draw(); } });
   draw();
   $('select').querySelector('div').textContent = 'สร้างตัวละคร';

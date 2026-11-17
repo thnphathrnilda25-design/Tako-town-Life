@@ -812,7 +812,7 @@ function finishShift() {
   const score = mg.score; mg = null; mgEl.hidden = true;
   const J = JOBS[st.job.id], L = st.job.lv;
   fade(() => {
-    const pay = Math.round(J.pay[L] * payMul() * (st.payMod && day() <= st.payMod.until ? .7 : 1) * (0.7 + 0.2 * score) * (st.mood >= 70 ? 1.1 : 1) * (typeof civicJobPayMult === 'function' ? civicJobPayMult() : 1));
+    const pay = Math.round(J.pay[L] * payMul() * (typeof clsPayMul === 'function' ? clsPayMul() : 1) * (st.payMod && day() <= st.payMod.until ? .7 : 1) * (0.7 + 0.2 * score) * (st.mood >= 70 ? 1.1 : 1) * (typeof civicJobPayMult === 'function' ? civicJobPayMult() : 1));
     st.job.perf += score + (st.mood >= 70 ? 0.5 : 0) - (st.mood < 30 ? 1 : 0); st.job.day = day(); st.stats.shifts++;
     fx({ money: pay, energy: -20, mood: -4 }); xp(J.skill, 15 + 5 * L); tick(6 * 60);
     say(`เลิกงาน! คะแนน ${score.toFixed(1)}/3 ได้ค่าจ้าง ฿${pay}`);

@@ -233,7 +233,7 @@ function spawnThief() {
     thief = { x, y, dir: 0, frame: 0, at: 0, mode: 'sneak', t: 0, loot: 0, spr: THIEF_SPR }; return; }
 }
 function thiefUpdate(dt) {
-  if (!thief) { const h = hour(); if (scene === town && (h >= 21 || h < 4) && !overlayOpen() && st.money > 60 && !copNear(320) && Math.random() < dt * .005) spawnThief(); return; }
+  if (!thief) { const h = hour(); if (scene === town && (h >= 21 || h < 4) && !overlayOpen() && st.money > 60 && !copNear(320) && Math.random() < dt * .005 * (typeof nightRiskMul === 'function' ? nightRiskMul() : 1)) spawnThief(); return; }
   thief.t += dt; if (scene !== town || thief.t > 45) { if (thief.loot) townNews(`🦹 ขโมยหนีไปได้พร้อมเงิน ฿${thief.loot}`); thief = null; return; }
   if (thief.mode === 'sneak') {
     if (Math.hypot(player.x - thief.x, player.y - thief.y) < 16 && !busy && !menuOpen && !panelOpen) { const loot = Math.min(st.money, 40 + ri(120)); st.money -= loot; thief.loot = loot; thief.mode = 'flee'; thief.t = 30; toast(`🦹 โดนล้วงกระเป๋า! เสีย ฿${loot} — รีบตามจับหรือแจ้งตำรวจ!`); }

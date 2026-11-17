@@ -61,7 +61,7 @@ function stat(k) {
   if (k === 'economy' && st.biz) v += Math.min(8, (st.biz.rep || 0) / 12);
   return townClamp(v);
 }
-const townScore = () => Math.round(Object.keys(STATS).reduce((a, k) => a + stat(k), 0) / 5);
+const townScore = () => Math.round(Object.keys(STATS).reduce((a, k) => a + stat(k), 0) / Object.keys(STATS).length);
 function civicBizBoost(d = day()) {
   const t = T0(); let boost = activePolicies().reduce((n, p) => n + (p.demand || 0), 0);
   if (t.built.market) boost += .08;
@@ -177,6 +177,7 @@ function hallPanel() {
     const t = T0(), mayor = t.mayor === 'player' ? 'คุณ' : PEOPLE.find(p => p.id === t.mayorId)?.n || 'สภาเมือง';
     const rows = [row('🏙️', `เมืองพิกเซล — คะแนน ${townScore()}/100`, `นายกฯ: ${mayor} · ประชาชน ${citizens()} · คลัง ฿${Math.round(t.funds)} · ความนิยม ${Math.round(t.approval)}%`),
       ...Object.entries(STATS).map(([k, n]) => row('', n, el('div', { className: 'bar', style: 'width:140px' }, el('i', { style: `width:${stat(k)}%;background:#7ee07e` })), el('span', {}, String(stat(k))))),
+      ...(typeof clsHallRows === 'function' ? clsHallRows() : []),
       el('div', { className: 'sec' }, 'งบประมาณเมือง — 7 วันล่าสุด'), ...budgetRows(t),
       ...(t.budgetLog.length > 1 ? t.budgetLog.slice(1).map(b => row('🗓️', `วันที่ ${b.d}: ${b.operating >= 0 ? '+' : ''}฿${b.operating}`, `รายรับ ฿${b.revenue} · รายจ่าย ฿${b.maintenance + b.policyCost}`)) : []),
       row('💝', 'บริจาคเข้ากองทุนเมือง', 'ช่วยให้สภามีงบทำโครงการ', ...[100, 500].map(n => btn(`฿${n}`, () => { if (st.money < n) return say('เงินไม่พอ'); st.money -= n; t.funds += n; st.civic = (st.civic || 0) + n; fx({ mood: 4 }); save(); refreshPanel(); }, st.money < n)))];
