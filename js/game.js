@@ -224,6 +224,9 @@ const BUILDINGS = [
   { x: 15, y: 33, w: 4, h: 3, wh: 58, wall: '#d8e8f0', roof: '#b05a3a', curtain: '#f0c8a0' },
   { x: 23, y: 33, w: 4, h: 3, wh: 58, wall: '#f8e0a8', roof: '#5a5a9a', curtain: '#c8c8f0', chimney: 1 },
   { x: 28, y: 33, w: 4, h: 3, wh: 58, wall: '#f0c8d0', roof: '#3a7a7a', curtain: '#a8e0d8', box: 1 },
+  // Phase 5 story buildings: the burnt old café and Cora's shuttered woodshop (appended so old indices stay stable)
+  { n: 'ร้านกาแฟเก่า', x: 23, y: 13, w: 4, h: 3, wh: 62, wall: '#d8b088', roof: '#7a4a30', awn: ['#8a4a32', '#e8d8b8'], sign: 'ร้านกาแฟเก่า', act: 'oldcafe', door: '#6a4028', curtain: '#e8d0a8' },
+  { n: 'โรงไม้', x: 8, y: 13, w: 3, h: 3, wh: 60, wall: '#b89068', roof: '#6a4a2e', awn: ['#7a5a3a', '#c8b090'], sign: 'โรงไม้', act: 'woodshop', door: '#5a3820' },
 ];
 for (const b of BUILDINGS) {
   setSolid(town, b.x, b.y, b.w, b.h);
@@ -289,9 +292,9 @@ function drawBuilding(b) {
   }
 }
 const TREES = [[9, 20], [11, 20], [14, 20], [18, 20], [9, 23], [18, 24], [9, 27], [13, 27], [16, 27], [18, 27]];
-const LAMPS = [[9, 15], [18, 15], [23, 15], [32, 15], [17, 25], [23, 27], [32, 27], [36, 15], [4, 15], [5, 36], [14, 36], [33, 36]];
+const LAMPS = [[6, 15], [18, 15], [19, 15], [32, 15], [17, 25], [23, 27], [32, 27], [36, 15], [4, 15], [5, 36], [14, 36], [33, 36]];
 const BENCHES = [[15, 21], [10, 25]];
-const TABLES = [[23, 13], [26, 13]];
+const TABLES = [[22, 16], [27, 16]];
 const GARDEN = [[11, 14], [12, 14], [13, 14], [11, 15], [12, 15], [13, 15]];   // community vegetable plots
 const MAILBOX = [10, 12];
 const nearB = (x, y) => BUILDINGS.some(b => x >= b.x - 1 && x <= b.x + b.w && y >= b.y - 1 && y <= b.y + b.h + 1);

@@ -35,6 +35,7 @@ Then open `http://localhost:8765/pixel-town-32.html`.
 | `js/minis.js` | Mini-games: timing bar, quiz, Simon, dodge runner, memory, dance. |
 | `js/anim.js` | Activity animations and progress bar. Wraps the furniture and town actions. |
 | `js/love.js` | Dating, proposals, weddings, children, playing as your child. |
+| `js/dating.js` | Relationship progress panel (stage, next step, progress bar) and one free casual walk per NPC per day; adds both options to every eligible adult through `personOpts`. |
 | `js/phone.js` | Phone: messages, camera, shop delivery, bank, map, calendar, games. |
 | `js/walk.js` | A* pathfinding for NPCs, personal schedules, real walk-to-door building entry with fade in/out, held props and idle chats, NPC aging and yearly world events (births, marriages, deaths). |
 | `js/dialog.js` | Conversation choices, hatred, rumours, apologies. |
@@ -59,6 +60,7 @@ Then open `http://localhost:8765/pixel-town-32.html`.
 | `js/status.js` | Birth status and social class: five classes (ยากจน / พออยู่พอกิน / ชั้นกลาง / มีฐานะ / ร่ำรวย), creator picker, starting money/home/furniture, class-based XP and wages, daily social mobility, NPC class from role, town class distribution and equality, the `🏅 สถานะ` phone app, and class inheritance through `passTorch`. |
 | `js/safety.js` | Safety and quality of life: place/time-based safety index, night thief risk, uneasy moodlet, HUD safety row, daily safety news, CCTV project and patrol policy, and the `🏙️ เมือง` phone app with city stats, class mix, projects, policies and a safe walk home. |
 | `js/income.js` | Extra income: a daily three-job side board with an all-three bonus, three online freelance offers per day, a four-asset investment market with daily prices, and a daily check-in streak. Adds phone apps, a PC shortcut and a board in the plaza. |
+| `js/stories.js` | Phase 5 "ชุดเชื่อมเมือง": three connected four-chapter life stories (the old café, the furniture family, the carpenter's secret) sharing one backstory, one chapter per in-game day with a one-day grace window, a `📖 เรื่องราว` phone app, ending-specific rewards, three world flags, story phone messages, and two enterable interiors (ร้านกาแฟเก่า, โรงไม้) on the `nRoom` scene. |
 | `js/system.js` | Title screen with save slots, pause menu, settings. |
 
 ## Load order (important)
@@ -70,7 +72,7 @@ people, game, mapart, wearart, life, seasons, school, shops, pets, wardrobe, fas
 minis, anim, love, phone, walk, dialog, events, audio, collect, biz, quests, adventure,
 mayor, talkbox, goals, wallet, lively, homes, family, collections, career, tech, income,
 housing, social, memory, realism, townlife, npclife, npcdeep, npcmove, nightlife, tutorial, lighting,
-status, safety, system
+status, safety, dating, stories, system
 ```
 
 Modules are plain scripts that share one global scope. A later module can replace or wrap an earlier one's functions (for example `talk`, `say`, `updatePerson`, `personOpts`, `seasonTick`, `lifeTick`, `drawEnt`, `update`). Changing the order will break things. Add new modules before `system.js`, and register them in the array at the bottom of the HTML.
@@ -82,6 +84,7 @@ Modules are plain scripts that share one global scope. A later module can replac
 - **Scenes:** `town`, `home`, `nRoom` (a visited neighbour's living room) and `mine`. Each is a scene object with `W`, `H`, `tile`, `solid`, `statics`, `targets`, `ents`.
 - **Neighbour homes:** `homes.js` adds a door target to every non-shop building. A visit only opens when at least one resident is actually inside (`hidden` + `in`/`home` slot), so daytime knocks get a polite "come back in the evening". The interior is a 10×8 room rebuilt from the furniture catalogue, styled by the household head's trait, and up to four residents wander inside. Residents are frozen (`p.visiting`) while you are in their home. Praising the home is a once-a-day +3 relationship action, and the living room has a sofa (rest 30 minutes) and TV (watch together for an hour) target. Saving inside moves the save back to that home's town door.
 - **Relationship app:** `APP.rel` is added to the phone by `homes.js`. It lists townsfolk with relationship buckets (family/friend/love/acquaintance), shows household, head of house, likes, contact status, gift/talk counts, and can jump to messages or pin the home. The pinned home is drawn as a small heart on the phone map.
+- **Story arcs (Phase 5):** `stories.js` owns `st.story` (`v`, `arc`, `mem`, `perk`, `world`, `avail`) and never touches the seven-chapter main story in `Q().story`. Three arcs — café (`finn`), family (`ryan`/`ivy`) and woodshop (`cora`) — unlock through a relationship threshold plus a minimum day, then schedule chapters at +0/+2/+4/+6 days with a one-day grace window. A missed chapter is logged and skipped, and a missed finale resolves to the arc's default ending. Each ending sets a world flag (`world.cafe` 0/1/2, `world.family` 1/2/3, `world.workshop` 0/1), sends an in-character phone message, and offers one of three once-only rewards from the story app. `APP.story` shows active, completed and locked arcs, chapter progress, summaries, missed-chapter markers and unclaimed rewards. `ร้านกาแฟเก่า` and `โรงไม้` reuse the `nRoom` scene with their own backgrounds, statics and targets plus `visit.story`; saving or leaving maps back to the building door like a neighbour home. Story rooms clear `p.visiting` on exit so no NPC stays frozen.
 - **Career app and odd jobs:** `APP.work` in `career.js` shows your current title, shift window, performance bar and promotion requirement, and lets you apply or quit. Each day two paid odd jobs are posted at the cafe, minimart or office; accept one in the app, then choose the gig option at that workplace during its time window. Gigs pay by skill level and mini-game score, give skill XP and count toward the `gig1`/`gig10` achievements.
 - **Online careers:** `tech.js` merges five remote tracks into `JOBS` with `remote: 1|2`, so they share the normal shift mini-game, performance bar, pay ladder and promotion rules. They are hidden from the local job list and instead appear in `APP.online`; work them from the computer at home (`FURN_ACTS.pc` gains "เริ่มกะ…"). A separate board posts four paid gigs per day (drawn deterministically from 14 offers), each with a skill, time, energy cost and mini-game. `techState()` in `st.tech` tracks the daily board, portfolio pieces and shift count; rank thresholds are 4/12/24/40/60 pieces and followers are 15 per piece. All of it saves with the normal game state.
 - **Guided tutorial:** `tutorial.js` drives nine steps stored in `st.tut` (`on`, `step`, `at/base`, `flags`, `claimed`, `finished`). Each step has a live `done()` check, optional UI selector to pulse, and optional world target drawn as a bobbing gold marker or a screen-edge compass arrow. The tracker hides while a panel, menu, mini-game or fade is open and reappears with the phone-panel banner; steps can be skipped or paused, and the phone's 🧭 app replays the whole chain. New games start it automatically; old saves get an inert legacy record and can start it from the app. Completion pays ฿300, mood and logic XP once per save and unlocks the `tutorial` achievement.
@@ -126,10 +129,11 @@ Modules contain `console.assert` checks at load time (item tables, placement, in
 | `js/wearart.js` | Rewritten: 24x40 sprites, 7 frames per direction (idle + 6-frame walk), all hair/clothing layers redrawn for the new body. Replaces the old 32x32 `charCanvas`/`sheet` in `game.js`. |
 | `js/housing.js` | Move out at 18 (7-day deadline), rent studio/apartment/house or buy with a 40-week mortgage, weekly rent, eviction after 3 missed payments, separate parents' house (`parentsHome`), partner moves in. |
 | `js/social.js` | 19 two-person social actions with animations (hug, kiss, comfort, dance, argue, slap, apologise…) and adults-only private time with consent and fade-to-black. |
+| `js/dating.js` | Relationship progress, next-step guidance, and one free casual walk per NPC per day. |
 | `js/memory.js` | NPC memories, memory lines in dialogue, gossip through friends, NPC-to-NPC friendships/feuds, town reputation, aging, parents' and player's death, funerals, inheritance. |
 | `js/realism.js` | Stress, sleep debt, weight, injuries, food poisoning/colds, moodlets, loans + credit score, utility bills by usage, yearly inflation. Bladder/bathroom/shower hygiene systems were removed. |
 
-Load order now ends with: `… career, tech, income, housing, social, memory, realism, townlife, npclife, npcdeep, npcmove, nightlife, tutorial, lighting, status, safety, system`. Backups of the files before the sprite update: `js.backup-before-sprites/`.
+Load order now ends with: `… career, tech, income, housing, social, memory, realism, townlife, npclife, npcdeep, npcmove, nightlife, tutorial, lighting, status, safety, dating, stories, system`. Backups of the files before the sprite update: `js.backup-before-sprites/`.
 
 ## Map redesign (`js/mapart.js`, loaded right after `game.js`)
 
