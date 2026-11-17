@@ -151,7 +151,14 @@ var loveOf = p => {
 };
 function romanceDaily() {
   const L = NPC_LOVE(), you = [st.partner, st.spouse, st.engaged, st.cohab];
-  const singles = people.filter(p => !p.fam && alive(p) && !p.mate && p.age >= 18 && p.age <= 50 && !loveOf(p) && !you.includes(p.id));
+  // Keep NPCs the player has invested in available for the player's own romance path.
+  // Otherwise a long friendship can be overwritten by the daily NPC matchmaking on their 18th birthday.
+  const playerBond = p => {
+    const r = st.rel?.[p.id];
+    return !!r && ((r.f || 0) >= 40 || (r.date || 0) > 0 || (r.gift || 0) >= 3);
+  };
+  const singles = people.filter(p => !p.fam && alive(p) && !p.mate && p.age >= 18 && p.age <= 50 && !loveOf(p) && !you.includes(p.id)
+    && (st.partner || !playerBond(p)));
   for (let i = 0; i < 3 && singles.length > 1; i++) {
     const a = singles[ri(singles.length)], b = singles.find(b => b !== a && b.g !== a.g && Math.abs(b.age - a.age) <= 10 && (aff(a, b) >= 1 || hash01(a.k * 13 + b.k + day()) < .12));
     if (b) { L[pairKey(a, b)] = { a: a.id, b: b.id, since: day() }; TL.loveMap = null; townNews(`💕 ${a.n} กับ ${b.n} เริ่มคบกันแล้ว`); break; }
@@ -159,7 +166,7 @@ function romanceDaily() {
   for (const [k, c] of Object.entries(L)) {
     const A = PEOPLE.find(p => p.id === c.a), Bp = PEOPLE.find(p => p.id === c.b);
     if (!A || !Bp || !alive(A) || !alive(Bp) || A.mate || Bp.mate) { delete L[k]; continue; }
-    if (aff(A, Bp) <= -1 || Math.random() < .03) { delete L[k]; A2()[k] = (A2()[k] || 0) - 1; townNews(`💔 ${A.n} กับ ${Bp.n} เลิกกันแล้ว`); }
+    if (aff(A, Bp) <= -1 || Math.random() < .002) { delete L[k]; A2()[k] = (A2()[k] || 0) - 1; townNews(`💔 ${A.n} กับ ${Bp.n} เลิกกันแล้ว`); }
     else if (!c.eng && day() - c.since >= 8 && Math.random() < .15) { c.eng = day(); townNews(`💍 ${A.n} ขอ ${Bp.n} แต่งงาน! เธอตอบตกลง`); }
     else if (c.eng && day() - c.eng >= 4) {
       const e = { t: 'marry', a: A.id, b: Bp.id, y: yearsPassed() }; world().ev.push(e); applyEvent(e, true); delete L[k];
