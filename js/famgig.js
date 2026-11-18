@@ -32,7 +32,7 @@ function fgOption(p) {
   const label = young ? `ช่วยดูน้อง (${mins} นาที · +ความสนิท)`
     : school ? `ช่วยงาน${place} (${mins} นาที · +${fgName(skill)})`
       : `ช่วยงาน${place} (${mins} นาที · +฿${amt})`;
-  return [label, () => fgDo(id, m, { place, amt, mins, skill, young, school })];
+  return [label, () => fgDo(id, m, { place, amt, mins, skill, young, school, atWork: out })];
 }
 
 function fgDo(id, m, o) {
@@ -42,7 +42,7 @@ function fgDo(id, m, o) {
   fx({ energy: -6, food: -3, mood: 5 });
   const r = relOf(id); r.f = Math.min(100, (r.f || 0) + 4);
   xp(o.skill, 8);
-  const tip = o.young || o.school || Math.random() >= .28 ? 0 : 10 + Math.floor(Math.random() * 16);
+  const tip = o.atWork && !o.school && !o.young && Math.random() < .28 ? 10 + Math.floor(Math.random() * 16) : 0;
   if (o.amt + tip > 0) fx({ money: o.amt + tip });
   S.log[id] = day(); S.total = (S.total || 0) + o.amt + tip; S.count = (S.count || 0) + 1;
   if (typeof remember === 'function') remember(id, 'help', 1, `ช่วยงาน${o.place}`);
@@ -77,7 +77,7 @@ function fgWorkOptsAt(x, y) {
     const amt = school ? 0 : Math.round((typeof swWage === 'function' ? swWage(m) : 0) * .45);
     const skill = fgSkillOf(id, m);
     out.push([`ช่วยงาน${place}กับ ${m.n} (${mins} นาที · ${amt ? `+฿${amt}` : `+${fgName(skill)}`})`,
-      () => fgDo(id, m, { place, amt, mins, skill, young: false, school })]);
+      () => fgDo(id, m, { place, amt, mins, skill, young: false, school, atWork: true })]);
   }
   return out;
 }
