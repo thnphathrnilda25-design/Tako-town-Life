@@ -129,7 +129,7 @@ Modules contain `console.assert` checks at load time (item tables, placement, in
 | `js/wearart.js` | Rewritten: 24x40 sprites, 7 frames per direction (idle + 6-frame walk), all hair/clothing layers redrawn for the new body. Replaces the old 32x32 `charCanvas`/`sheet` in `game.js`. |
 | `js/housing.js` | Move out at 18 (7-day deadline), rent studio/apartment/house or buy with a 40-week mortgage, weekly rent, eviction after 3 missed payments, separate parents' house (`parentsHome`), partner moves in. |
 | `js/social.js` | 19 two-person social actions with animations (hug, kiss, comfort, dance, argue, slap, apologise…) and adults-only private time with consent and fade-to-black. |
-| `js/dating.js` | Relationship progress, next-step guidance, and one free casual walk per NPC per day. |
+| `js/dating.js` | Relationship progress, next-step guidance, free dates from 10 friendship, confession from 20, open to every adult 18+, and one free casual walk per NPC per day. |
 | `js/memory.js` | NPC memories, memory lines in dialogue, gossip through friends, NPC-to-NPC friendships/feuds, town reputation, aging, parents' and player's death, funerals, inheritance. |
 | `js/realism.js` | Stress, sleep debt, weight, injuries, food poisoning/colds, moodlets, loans + credit score, utility bills by usage, yearly inflation. Bladder/bathroom/shower hygiene systems were removed. |
 
