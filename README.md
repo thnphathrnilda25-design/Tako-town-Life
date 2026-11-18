@@ -20,18 +20,18 @@ Then open `http://localhost:8765/pixel-town-32.html`.
 | `js/people.js` | 50 townsfolk: names, ages, roles, traits, schedules, likes and dislikes. |
 | `js/game.js` | Core: canvas renderer with 16×32 character sprites, town and home maps, buildings, state, actions, panels, save/load, main loop. Bed offers 2/4/8/10-hour sleep with different recovery, hunger and lateness effects. |
 | `js/wearart.js` | Pixel art for clothing layers and hair extras. |
-| `js/life.js` | Character creator (Thai/English names, start at 16 or 6, 22 hairstyles and customizable top/bottom/shoes), parents and genetics, aging, birthdays. |
+| `js/life.js` | Character creator (Thai/English names, start at 16 or 6, hairstyles and customizable top/bottom/shoes), parents and genetics, aging, birthdays. Hairstyles are strictly separated by gender: `HAIR_G` lists the 12 male and 10 female cuts, `hairOk(g,id)`/`hairFor(g,style,hx)`/`hairPick(g)`/`normalizeLook(look)` guarantee a body never wears the other gender's cut (and men never get skirts or dresses). `dnaLine(from)` prints which parent each hair colour, skin tone and eye colour came from. `bakeLook(look,p,k)` stores a generated NPC outfit once in `look.base`, so a body's sprite is identical whether you are playing it or walking past it. |
 | `js/seasons.js` | Seasons, weather, 5 festivals with 4 plaza activities each, souvenirs. |
 | `js/school.js` | Classes, homework, exams, report cards, graduation. |
 | `js/shops.js` | Extra shops and buildings, fishing. |
 | `js/pets.js` | Pets, community garden. |
-| `js/wardrobe.js` | 138 clothing items, hairstyles, dyes, fashion shop, salon, closet. |
+| `js/wardrobe.js` | 138 clothing items, hairstyles, dyes, fashion shop, salon, closet. The closet/salon hair list only offers cuts for the body's gender (`hairOk`), illegal hair in `st.wear` is ignored, and `makeFamily()` bakes each parent's generated outfit into `look.base` so parent sprites and their switchable bodies match. |
 | `js/townlife.js` | NPC real hours (home by dark, staggered bedtimes, lit windows only while awake), needs (hunger/energy/fun), shop shifts (shop closed with no staff; one night clerk keeps the mart 24h), weather reactions, friends/couples walk together, readable chat bubbles, NPCs remark on you, NPC dating/break-ups/weddings, birthday wishes, favours, good-night texts, 📰 news app. |
 | `js/npclife.js` | NPC life core: long-term goals per role and daily goals, six needs (adds loneliness/stress/privacy to hunger/energy/fun), event-driven schedules, seven weekly routines, nine hobbies, life-stage flavour, personal events with news, NPC–NPC bond labels, and profile/chat/thought integration. Wraps `slotOf`, `tick`, `seasonTick`, `personOpts`, `chatLine`, `mindOf`, `relProfileView` and `drawEnt`; it does not replace the walk, shop or romance systems. |
 | `js/npcdeep.js` | Memory & trust: a persistent trust score separate from friendship, weighted memories with salience decay, secrets with promise/leak/spread/found-out tracking, grudges with venue avoidance and reconciliation (including player mediation), and NPC crushes. Wraps `remember`, `memoryLine`, `apologize`, `date`, `confess`, `slotOf`, `seasonTick`, `chatHook`, `mindOf`, `chatLine`, `personOpts` and `relProfileView`; state is lazily created so old saves keep working. |
 | `js/npcmove.js` | Living households: ten seeded families, four migration types (couples move in together, grown teens move out, elders join family, overcrowded homes split), daily household sync, family routines, per-home furniture and family portraits, migration news and player hooks (help move, farewell party, visit the new home). Wraps `roomLayout`, `drawNpcRoomBg`, `enterNpcHome`, `relProfileView`, `APP.rel`, `slotOf`, `drawEnt`, `seasonTick`, `makePeople`, `applyEvent`, `divorce` and `start`. |
 | `js/nightlife.js` | Night market (18:00–00:30), café bar after 19:00, stargazing, fireflies; weekly events (Wed quiz, Fri movie, Sat farmers' market, Sun park concert); Valentine's, music fest, Loy Krathong on the river, Christmas; police patrols, wanted level, arrests/fines/jail, shoplifting, night pickpockets; new weather visuals (slanted rain, splashes, lightning, fog, cloud shadows, sun rays, vignette). |
-| `js/fashion.js` | Style looks (drip, old money, kid, jacket, vintage, minimal, emo): 13 hairstyles, 60 curated items, full-look sets at 15% off. `npcWear` gives every townsperson a deterministic outfit across top, bottom, shoes, hat, glasses, accessory and hair, avoiding duplicate full outfits until the combination pool runs out. Adult women get a `bust` palette flag (shading only). |
+| `js/fashion.js` | Style looks (drip, old money, kid, jacket, vintage, minimal, emo): 13 hairstyles, 60 curated items, full-look sets at 15% off. `npcWear` gives every townsperson a deterministic outfit across top, bottom, shoes, hat, glasses, accessory and hair, avoiding duplicate full outfits until the combination pool runs out; `nwHair` only draws cuts from that person's gender list. Adult women get a `bust` palette flag (shading only). |
 | `js/minis.js` | Mini-games: timing bar, quiz, Simon, dodge runner, memory, dance. |
 | `js/anim.js` | Activity animations and progress bar. Wraps the furniture and town actions. |
 | `js/love.js` | Dating, proposals, weddings, children, playing as your child. |
@@ -63,7 +63,8 @@ Then open `http://localhost:8765/pixel-town-32.html`.
 | `js/stories.js` | Phase 5 "ชุดเชื่อมเมือง": three connected four-chapter life stories (the old café, the furniture family, the carpenter's secret) sharing one backstory, one chapter per in-game day with a one-day grace window, a `📖 เรื่องราว` phone app, ending-specific rewards, three world flags, story phone messages, and two enterable interiors (ร้านกาแฟเก่า, โรงไม้) on the `nRoom` scene. |
 | `js/funtime.js` | 15 inviteable activities for a partner, spouse, parent, child or close friend (picnic, movie night, stargazing, night market, beach trip, family dinner…), each with a two-person animation, place/time/price rules, a daily cooldown, relationship/mood rewards, a keepsake photo in the phone album, and a 🖼️ memory log with daily and streak bonuses. |
 | `js/timeskip.js` | Sleep through whole years from the bed: 🌌 นอนข้ามเวลา offers 1/2/3/5/10 years, simulates every birthday inside the skip (aging, parent deaths, town news, inflation, job wages), auto-resolves missed story chapters, and reports everything in one 🌅 summary panel. Sleeping is free. Old saves get `st.ts` lazily. |
-| `js/swap.js` | Family switching: the `👪 ครอบครัว` phone app plays any household member (parents, spouse, kids of any age) back and forth for free, leaves the body you left behind as an NPC living at home, keeps one shared household purse while skills/inventory/outfit/job stay per person, warps you home from anywhere, and pays the family members you are not playing at 18:00. Haircuts, dyes and outfits you change while playing a body are written back to that body's record and NPC sprite. Old saves get `st.famSw` and `st.ageShift0` lazily. |
+| `js/swap.js` | Family switching: the `👪 ครอบครัว` phone app plays any household member (parents, spouse, siblings, kids of any age) back and forth for free, leaves the body you left behind as an NPC living at home, keeps one shared household purse while skills/inventory/outfit/job stay per person, warps you home from anywhere, and pays the family members you are not playing at 18:00. Haircuts, dyes and outfits you change while playing a body are written back to that body's record and NPC sprite; every body sprite is built from `palOf(look)` plus its baked `look.base`, so the person you switch into is pixel-identical to the NPC you left behind. A 🧬 DNA section in the app lists which parent gave each hair colour, skin tone and eye colour. Old saves get `st.famSw` and `st.ageShift0` lazily. |
+| `js/sibling.js` | Siblings rolled at the start of a new life (22% none, 46% one, 32% two): an older brother/sister or younger one, 1–5 years apart, with their own name, gender, trait, schedule, DNA record from พ่อ/แม่, and a baked everyday outfit. They live in the house, show up in the `👪 ครอบครัว` app, journal and family rows, can be switched into like any family member, and answer to คุยด้วย / กอด / เล่นด้วยกัน / ขอเงินพี่ / ให้ของขวัญ. `ensureSibs()` is idempotent, so `makeFamily`, `passTorch` and `start` can rebuild the household without duplicating anyone. |
 | `js/system.js` | Title screen with save slots, pause menu, settings. Any Escape that closes a conversation is swallowed so the pause menu cannot open on top of it. |
 
 ## Load order (important)
@@ -75,7 +76,7 @@ people, game, mapart, wearart, life, seasons, school, shops, pets, wardrobe, fas
 minis, anim, love, phone, walk, dialog, events, audio, collect, biz, quests, adventure,
 mayor, talkbox, goals, wallet, lively, homes, family, collections, career, tech, income,
 housing, social, memory, realism, townlife, npclife, npcdeep, npcmove, nightlife, tutorial, lighting,
-status, safety, dating, stories, funtime, timeskip, swap, system
+status, safety, dating, stories, funtime, timeskip, sibling, swap, system
 ```
 
 Modules are plain scripts that share one global scope. A later module can replace or wrap an earlier one's functions (for example `talk`, `say`, `updatePerson`, `personOpts`, `seasonTick`, `lifeTick`, `drawEnt`, `update`). Changing the order will break things. Add new modules before `system.js`, and register them in the array at the bottom of the HTML.
@@ -157,7 +158,7 @@ keepsake photo lands in the camera album. Three activities in one day (🌟) and
 (🔥) give a small mood bonus. All state is created lazily, so old saves load unchanged, and nothing
 here is required for the story or the money balance.
 
-Load order now ends with: `… career, tech, income, housing, social, memory, realism, townlife, npclife, npcdeep, npcmove, nightlife, tutorial, lighting, status, safety, dating, stories, funtime, timeskip, swap, system`. Backups of the files before the sprite update: `js.backup-before-sprites/`.
+Load order now ends with: `… career, tech, income, housing, social, memory, realism, townlife, npclife, npcdeep, npcmove, nightlife, tutorial, lighting, status, safety, dating, stories, funtime, timeskip, sibling, swap, system`. Backups of the files before the sprite update: `js.backup-before-sprites/`.
 
 ## Sleeping through years (`js/timeskip.js`)
 
@@ -186,7 +187,7 @@ the first morning so the summary is not buried under a pop-up.
 
 ## Family switching, warp and family income (`js/swap.js`)
 
-เปิด **👪 ครอบครัว** ในมือถือเพื่อสลับชีวิตเป็นคนในบ้านคนไหนก็ได้ — พ่อ แม่ คู่สมรส และลูกทุกวัย
+เปิด **👪 ครอบครัว** ในมือถือเพื่อสลับชีวิตเป็นคนในบ้านคนไหนก็ได้ — พ่อ แม่ คู่สมรส พี่/น้อง และลูกทุกวัย
 รวมเด็ก — สลับไป-กลับได้ไม่จำกัดและฟรี ไม่มีคูลดาวน์หรือค่าใช้จ่าย ตัวที่คุณทิ้งไว้จะยังอยู่ที่บ้าน
 ในร่าง NPC ที่เดินไปมาและใช้ชีวิตต่อ และเดินไปคุยหรือกด “🔄 สลับกลับมาเป็นตัวเอง” ได้ตลอด
 
@@ -201,20 +202,53 @@ the first morning so the summary is not buried under a pop-up.
 - **ตัดผม/แต่งตัวติดกับคนนั้น**: กด **👚 เปลี่ยนชุด/ทรงผม** ในแอป 👪 (ต้องอยู่บ้าน — ถ้าอยู่ที่อื่น
   เกมจะบอกให้วาปกลับบ้านฟรีก่อน) แล้วแก้ทรงผม สีย้อม เสื้อผ้าได้ตามปกติ สิ่งที่เปลี่ยนจะถูกเขียน
   กลับไปที่ `st.famSw.rec[id]` (`look`, `wear`, `outfit`) ตอนสลับร่าง และ `swSyncHouse(id)` อัปเดต
-  `st.parents.dad/mom.look`, `p.look`, `k.look` ให้ตรงกัน จากนั้น `swRepaint(id)` วาดสไปรต์ NPC
+  `st.parents.dad/mom.look`, `p.look`, `k.look`, `s.look` ให้ตรงกัน จากนั้น `swRepaint(id)` วาดสไปรต์ NPC
   ใหม่ทันที (และ `swRepaintAll()` ทำซ้ำทุกครั้งที่ `start` หรือ `rebuildHome`)
-  - `rec[id].wearSet = true` หมายถึง “ชุดนี้ถูกกำหนดแล้ว” — ถ้าไม่มี marker นี้ (เซฟเก่า) เกมจะใช้
-    `swBaseWear(id)` (ชุดเดิมของ NPC) แทนการเปลื้องผ้า
-  - ถอดเสื้อ/หมวกออกแล้วสลับร่าง ช่องนั้นจะว่างจริง (ไม่กลับไปใส่ชุดเดิมให้เอง)
+  - **ชุดประจำตัวอบครั้งเดียว**: `bakeLook(look, p, k)` เรียก `npcWear` ให้ NPC คนนั้นครั้งเดียวแล้วเก็บผลไว้ใน
+    `look.base` (ตัดคีย์ผมออก) ทุกสไปรต์ — NPC ที่เดินอยู่, รูปย่อในแอป, ร่างที่คุณสลับเข้าไป — วาดจาก
+    `palOf(look)` ที่ merge `look.base` ตัวเดียวกัน จึงออกมาเหมือนกันทุกพิกเซล ไม่ต้องเรียก `npcWear`
+    ซ้ำ (ตัวนั้นผูกกับตำแหน่ง/แคช `NW_POS`/`NW_CACHE` จึงสุ่มชุดใหม่ทุกครั้งที่เรียก)
+  - ถอดเสื้อ/หมวกออกแล้วสลับร่าง ช่องนั้นจะว่างจริง (ไม่กลับไปใส่ชุดเดิมให้เอง) — `st.wear` เก็บเฉพาะ id
+    ของ `WITEM` ไม่มีข้อมูลสี/ทรงปนอยู่
   - รูปย่อในแอป 👪 และสไปรต์ร่างที่คุณทิ้งไว้ก็ใช้ชุด/ทรงผมชุดเดียวกัน
+  - ถ้าทรงผมในเซฟผิดเพศ (เซฟเก่าหรือแก้เอง) `normalizeLook()` จะแก้ให้เป็นทรงของเพศนั้นทันทีทั้งตอน
+    โหลดและตอนสลับร่าง
+- **🧬 DNA**: แอป 👪 มีส่วน “DNA ครอบครัว” บอกว่าสีผม/สีผิว/สีตาแต่ละอย่างได้จากพ่อหรือแม่
+  (`dnaLine(from)`) ใช้ทั้งกับคุณ พี่น้อง ลูก และแสดงในสมุดบันทึกกับแถวครอบครัว
 - **🏠 วาปกลับบ้าน (ฟรี)**: ปุ่มในแอป ใช้ได้จากทุกที่ (ในเมือง บ้านพ่อแม่ ฯลฯ) ไม่มีค่าใช้จ่าย
-- **รายได้ครอบครัว**: พ่อ ฿165/วัน, แม่ ฿120/วัน (คูณ `st.infl`), ลูก ฿100/วันเมื่อ 18+,
+- **รายได้ครอบครัว**: พ่อ ฿165/วัน, แม่ ฿120/วัน (คูณ `st.infl`), ลูกและพี่/น้อง ฿100/วันเมื่อ 18+,
   ฿55/วันเมื่อ 16–17, ต่ำกว่า 16 ไม่มีรายได้ และคู่สมรสใช้เงินเดือนเดิมใน `family.js`
   จ่ายตอน 18:00 วันละครั้งต่อคน ข้ามคนที่คุณกำลังเล่นอยู่ และข้ามคู่สมรสเพื่อไม่ให้ได้เงินซ้ำ
   (ถ้าเล่นเป็นคู่สมรสเอง เงินเดือน NPC จะหยุดและคุณต้องเข้าผลัดเอง) สรุปในแอปและ toast
 - **ความปลอดภัย**: ถ้าคนที่คุณเล่นอยู่หายไปจากบ้าน (เสียชีวิต/ย้ายออก/เซฟถูกแก้) `swGuard()` จะพา
   กลับมาเป็นตัวเองให้อัตโนมัติ และ `passTorch` จะไม่ทำงานจนกว่าจะกลับมาเป็นตัวเองก่อน
   เซฟเก่าไม่มี `st.famSw`/`st.ageShift0` ก็เล่นต่อได้ทันที (สร้างให้เองตอนเริ่ม)
+
+## พี่น้อง ทรงผมแยกเพศ และ DNA (`js/sibling.js`, `js/life.js`)
+
+- **สุ่มพี่/น้องตอนเริ่มชีวิตใหม่** — `sibCount()` วัดดวง: 22% ไม่มีพี่น้อง, 46% มี 1 คน, 32% มี 2 คน
+  แต่ละคนสุ่มเป็นพี่ (45%) หรือน้อง, ชาย/หญิง, อายุห่าง 1–5 ปี, ชื่อจาก `KID_NAMES`, นิสัยจาก `TRAITS`
+  และสีผม/ผิว/ตาที่ถอดมาจากพ่อหรือแม่คนละส่วน (`from` = `{hair:'พ่อ'|'แม่', skin:…, eye:…}`)
+  เก็บใน `st.sibs` เป็น `{id, n, g, age0, older, trait, look, from}` — เซฟเก่าที่ไม่มี `st.sibs`
+  จะถูกสุ่มให้ครั้งแรกตอนโหลด แล้วจำไว้ในเซฟ
+- **อยู่บ้านเดียวกันจริง** — `syncSibs()` สร้าง entity ใน `fam` + `people` (บ้านเดียวกับคุณ, ตารางเวลา
+  ตามวัย, `slotOf` เดิม) จึงเดินไปมาในบ้าน, อยู่ในแถว “อยู่บ้านตอนนี้”, มีแถวในสมุดบันทึก,
+  สลับร่างได้จากแอป 👪 และมีรายได้ครอบครัวเหมือนคนอื่น `ensureSibs()` ลบของเก่าก่อนสร้างใหม่
+  จึงเรียกซ้ำได้ไม่มีความซ้ำซ้อน
+- **ตัวเลือกคุยกับพี่น้อง**: คุยด้วย / กอด / เล่นด้วยกัน / ขอเงินพี่ (พี่ที่ 18+ และสนิท 50+) /
+  ให้ของขวัญ — ใช้ระบบเดิม (`relOf`, `fx`, `giftPanel`) ทั้งหมด
+- **ทรงผมแยกเพศเด็ดขาด** — `HAIR_G` กำหนดว่าทรงไหนเป็นของผู้ชาย 12 ทรง / ผู้หญิง 10 ทรง ไม่มีทรงไหน
+  อยู่ทั้งสองฝั่ง: `hairOk(g,id)` ตรวจ, `hairFor(g,style,hx)` เลือกทรงฐานที่ถูกเพศให้ทรงพิเศษ
+  (เช่น หางม้า → ผมยาว, มวยคู่ → บ๊อบ), `hairPick(g)` สุ่มเฉพาะของเพศนั้น และ `normalizeLook(look)`
+  ซ่อมทุก look ที่เข้ามา (เซฟเก่า, ร่างที่สลับ, NPC) พร้อมกันนั้นผู้ชายจะไม่ได้รับกระโปรง/เดรส
+  หน้าเลือกทรงผมในหน้าแรกและในตู้เสื้อผ้ากรองด้วย `hairOk` และ `nwHair` ของ NPC ก็สุ่มจากทรงของ
+  เพศนั้นเท่านั้น
+- **เสื้อกับผมไม่ทับกัน** — เลเยอร์ผมวาดหลังศูนย์กลางหัวและไม่ลงมาถึงลำตัว (ตรวจด้วยการสแกนพิกเซล
+  ในมุมมองด้านหน้า) ส่วนมุมมองด้านข้างผมอยู่ข้างลำตัว และด้านหลังผมทับเสื้อตามธรรมชาติของการมองจากข้างหลัง
+- **DNA ไม่มั่ว** — พ่อแม่แต่ละคนมี `look.hair/skin/eye` ของตัวเอง ลูกและพี่น้องรับค่าจากคนใดคนหนึ่ง
+  แล้วจำชื่อผู้ให้ไว้ใน `from`; `dnaLine(from)` แปลงเป็นข้อความ `สีผมจาก… · สีผิวจาก… · สีตาจาก…`
+  แสดงในแอป 👪 (ทั้งของคุณ พี่น้อง และลูก) และในสมุดบันทึก — ค่าที่แสดงตรงกับสีที่วาดจริงเสมอ
+  เพราะทุกสไปรต์ใช้ `palOf(look)` ตัวเดียวกัน
 
 ## Map redesign (`js/mapart.js`, loaded right after `game.js`)
 

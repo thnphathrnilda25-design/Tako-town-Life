@@ -10,7 +10,7 @@ const HAIR = [['#2a2a3a', '#14141e', '#4a4a6a'], ['#a0582e', '#6e3519', '#c8804e
 const SHIRT = [['#c8402e', '#8a2a1e', '#6ad0e8'], ['#58c47a', '#2f7a48', '#245a34'], ['#9a48a8', '#6e2c7c', '#ff8ac8'], ['#58c8ec', '#3a8cc4', '#2648b0'], ['#f4f4f4', '#c8c8d4', '#3a5ad8'],
   ['#3a3a4a', '#24242e', '#e85a5a'], ['#f2c84a', '#c8982a', '#ffffff'], ['#e87a9a', '#b8506e', '#fff0f4'], ['#5a8ad8', '#3a5aa8', '#ffe14a'], ['#e8884a', '#b8602a', '#fff4e0']];
 const PANTS = [['#3b2a3e', '#2a1a1e'], ['#24402c', '#18281c'], ['#2c3c9c', '#1c2468'], ['#6a5a4a', '#3a2a1e'], ['#f2d44a', '#e0a040']];
-const STYLES_M = ['short', 'swept', 'short', 'long'], STYLES_F = ['bob', 'long', 'swept', 'bob'];
+const STYLES_M = ['short', 'swept', 'short', 'swept'], STYLES_F = ['bob', 'long', 'bob', 'long'];
 const SCHED = {
   student: [[6, 'home'], [8, 'school'], [12, 'plaza'], [13, 'school'], [15, 'park'], [17, 'mart'], [19, 'home'], [21, 'in']],
   worker: [[6, 'home'], [8, 'cafe'], [9, 'office'], [12, 'plaza'], [13, 'office'], [17, 'park'], [19, 'mart'], [21, 'home'], [22, 'in']],

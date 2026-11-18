@@ -224,7 +224,8 @@ function nwCandidate(p, k, group, attempt) {
 const nwSig = w => NW_SLOTS.map(s => w[s] || '-').join('|');
 const nwCore = w => [w.top, w.bottom, w.shoes].map(s => s || '-').join('|');
 function nwHair(p, k) {
-  const hs = HAIRSTYLES[Math.floor(nwRng(nwHash(nwKey(p, k) + '|hair'))() * HAIRSTYLES.length)];
+  const pool = HAIRSTYLES.filter(h => hairOk(p.g, h.id));
+  const hs = pool[Math.floor(nwRng(nwHash(nwKey(p, k) + '|hair'))() * pool.length)] || HAIRSTYLES[0];
   return { hx: hs.hx || '', style: hs.style, clip: p.g === 'f' && nwRng(nwHash(nwKey(p, k) + '|clip'))() < .28 ? 1 : 0 };
 }
 function nwPalette(p, k, w) {

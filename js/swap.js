@@ -25,6 +25,12 @@ function swMembers() {
   if (P && P.mom && !P.mom.dead) out.push({ id: 'mom', icon: '👩', n: P.mom.n, g: 'f', age: parentAge(P.mom), role: 'แม่ · ทำงานที่คาเฟ่' });
   const sp = typeof spouseP === 'function' ? spouseP() : null;
   if (sp) out.push({ id: 'spouse', icon: '💍', n: sp.n, g: sp.g, age: sp.age, role: 'คู่สมรส' });
+  (st.sibs || []).forEach((s, i) => {
+    if (!s.n) return;
+    const a = typeof sibAge === 'function' ? sibAge(s) : 0;
+    out.push({ id: 'sib' + i, icon: s.g === 'f' ? '👧' : '👦', n: s.n, g: s.g, age: a,
+      role: `${s.older ? 'พี่' : 'น้อง'}${s.g === 'f' ? 'สาว' : 'ชาย'} · ${a < 6 ? 'ยังเล็ก' : a < 18 ? 'นักเรียน' : 'วัยทำงาน'}` });
+  });
   (st.kids || []).forEach((k, i) => {
     if (!k.n) return;
     const a = kidAge(k);
@@ -41,21 +47,28 @@ function swWage(m) {
   if (m.id === 'mom') return Math.round(120 * infl);
   if (m.id === 'spouse') { const p = typeof spouseP === 'function' ? spouseP() : null; return (p && typeof SPOUSE_WAGE !== 'undefined' && SPOUSE_WAGE[p.role]) || 90; }
   if (m.id.startsWith('kid')) return m.age >= 18 ? Math.round(100 * infl) : m.age >= 16 ? Math.round(55 * infl) : 0;
+  if (m.id.startsWith('sib')) return m.age >= 18 ? Math.round(100 * infl) : m.age >= 16 ? Math.round(55 * infl) : 0;
   return 0;
 }
 const swLookOf = id => {
   if ((id === 'dad' || id === 'mom') && st.parents && st.parents[id]) return st.parents[id].look;
   if (id === 'spouse') { const p = spouseP(); return p ? lookOf(p) : null; }
   if (id.startsWith('kid')) { const k = (st.kids || [])[+id.slice(3)]; return k ? k.look : null; }
+  if (id.startsWith('sib')) { const s = (st.sibs || [])[+id.slice(3)]; return s ? s.look : null; }
   return st.look;
 };
 
 // ---- moving a life in and out of `st` ----
-const swGrab = () => { const o = {}; for (const k of SW_FIELDS) o[k] = swClone(st[k]); return o; };
+const swGrab = () => {
+  const o = {}; for (const k of SW_FIELDS) o[k] = swClone(st[k]);
+  if (o.look) normalizeLook(o.look);
+  if (o.wear && o.wear.hair && !hairOk(o.look && o.look.g, o.wear.hair)) delete o.wear.hair;
+  return o;
+};
 function swDefault(id, m) {
   return {
-    name: m.n, look: swLookOf(id) || st.look, ageShift: swShiftFor(m.age), lastAge: m.age,
-    sk: swBlankSk(), inv: {}, wear: swBaseWear(id), wearSet: true, outfit: 0, char: 0,
+    name: m.n, look: normalizeLook(swLookOf(id) || st.look), ageShift: swShiftFor(m.age), lastAge: m.age,
+    sk: swBlankSk(), inv: {}, wear: {}, wearSet: true, outfit: 0, char: 0,
     job: id === 'dad' ? { id: 'office', lv: 2, perf: 0, day: 0 } : id === 'mom' ? { id: 'barista', lv: 1, perf: 0, day: 0 } : null,
     energy: 85, food: 75, mood: 70, body: { stress: 15, kg: id.startsWith('kid') ? 30 : 62, awake: 0, injured: 0 },
     sick: null, payMod: null, school: null, grad: m.age >= 18 ? 1 : 0,
@@ -66,6 +79,8 @@ function swApply(s) {
   st.sk = { ...swBlankSk(), ...(st.sk || {}) };
   st.inv = st.inv || {}; st.wear = st.wear || {};
   if (!st.look) st.look = swLookOf('me') || st.look;
+  normalizeLook(st.look);
+  if (st.wear.hair && !hairOk(st.look.g, st.wear.hair)) delete st.wear.hair;
   if (st.job && !JOBS[st.job.id]) st.job = null;      // a job removed by an update must not crash the HUD
 }
 
@@ -93,17 +108,12 @@ const swAgeOf = id => {
   if (id === 'dad' || id === 'mom') return st.parents && st.parents[id] ? parentAge(st.parents[id]) : 0;
   if (id === 'spouse') { const p = spouseP(); return p ? p.age : 0; }
   if (id.startsWith('kid')) { const k = (st.kids || [])[+id.slice(3)]; return k ? kidAge(k) : 0; }
+  if (id.startsWith('sib')) { const s = (st.sibs || [])[+id.slice(3)]; return s ? sibAge(s) : 0; }
   return 0;
 };
-const swBaseWear = id => {          // the clothing an NPC already wears, so a repaint does not strip it
-  if (id === 'dad' || id === 'mom') { const f = fam.find(x => x.id === id); return f ? npcWear(f, fam.indexOf(f) + 11) : {}; }
-  if (id === 'spouse') { const p = spouseP(); return p ? npcWear(p, people.indexOf(p)) : {}; }
-  if (id.startsWith('kid')) { const i = +id.slice(3), k = (st.kids || [])[i]; return k ? npcWear({ id: 'kid' + i, g: k.g, age: kidAge(k) }, 300 + i) : {}; }
-  return {};
-};
-function swPal(look, wear, outfit, a, base) {
+function swPal(look, wear, outfit, a) {
   const keep = st.wear; st.wear = wear || {};
-  const pal = { ...palOf(look || st.look), ...(base || {}), ...(OUTFITS[outfit | 0] || {}), ...wearPal(), bust: (look || st.look).g === 'f' && a >= 18 };
+  const pal = { ...palOf(look || st.look), ...(OUTFITS[outfit | 0] || {}), ...wearPal(), bust: (look || st.look).g === 'f' && a >= 18 };
   st.wear = keep;
   return pal;
 }
@@ -111,6 +121,7 @@ const swEntOf = id => {
   if (id === 'dad' || id === 'mom') return fam.find(x => x.id === id) || null;
   if (id === 'spouse') { const p = spouseP(); return p && p.h ? p : null; }
   if (id.startsWith('kid')) { const k = (st.kids || [])[+id.slice(3)]; return k && typeof kidEnt !== 'undefined' ? kidEnt(k) : null; }
+  if (id.startsWith('sib')) return fam.find(x => x.id === id) || null;
   return null;
 };
 function swSyncHouse(id) {          // keep the household record in step so portraits and new saves match
@@ -119,13 +130,13 @@ function swSyncHouse(id) {          // keep the household record in step so port
   if ((id === 'dad' || id === 'mom') && st.parents && st.parents[id]) st.parents[id].look = look;
   else if (id === 'spouse') { const p = spouseP(); if (p) p.look = look; }
   else if (id.startsWith('kid')) { const k = (st.kids || [])[+id.slice(3)]; if (k) k.look = look; }
+  else if (id.startsWith('sib')) { const s = (st.sibs || [])[+id.slice(3)]; if (s) s.look = look; }
 }
 function swRepaint(id) {
   const r = swState().rec[id]; if (!r) return;
   if (id === 'me') { meEntCache = null; return; }
   const ent = swEntOf(id); if (!ent) return;
-  const wear = r.wearSet ? (r.wear || {}) : swBaseWear(id);
-  const spr = sheet(swPal(r.look || swLookOf(id), wear, r.outfit || 0, swAgeOf(id)));
+  const spr = sheet(swPal(r.look || swLookOf(id), r.wear || {}, r.outfit || 0, swAgeOf(id)));
   ent.spr = spr;
   if (ent.h) ent.h.spr = spr;
 }
@@ -141,6 +152,7 @@ const swEntIsActive = (e, cur) => {
   if (cur === 'dad' || cur === 'mom') return e.id === cur;
   if (cur === 'spouse') return !!st.spouse && e.id === st.spouse;
   if (cur.indexOf('kid') === 0) { const k = (st.kids || [])[+cur.slice(3)]; return !!(e.p && e.p.kid) && !!k && e.p.kid === k; }
+  if (cur.indexOf('sib') === 0) return e.id === cur;
   return false;
 };
 
@@ -243,7 +255,7 @@ const swMemberLook = (S, m) => {
 const swMemberIcon = (S, m) => {
   try {
     const r = S.rec[m.id], on = m.id === S.cur;
-    const wear = on ? st.wear : (r && r.wearSet ? r.wear : swBaseWear(m.id));
+    const wear = on ? st.wear : (r && r.wear);
     const outfit = on ? st.outfit : (r && r.outfit);
     return thumb(sheet(swPal(swMemberLook(S, m), wear, outfit, m.age)));
   } catch (e) { return m.icon; }
@@ -267,6 +279,10 @@ function famApp() {
     const sub = `${m.role}${w ? ` · ฿${w}/วัน` : job}${on ? ' · กำลังเล่นอยู่' : ''}`;
     out.push(row(swMemberIcon(S, m), `${m.n} · ${sexIcon(m.g)} ${sexFull(m.g)} · ${m.age} ปี`, sub, btn(on ? 'กำลังเล่น' : 'สลับเป็น', () => swSwitch(m.id), on)));
   }
+  out.push(el('div', { className: 'sec' }, '🧬 DNA ครอบครัว'));
+  out.push(el('div', { className: 'sub' }, `คุณ ${st.name}: ${dnaLine(st.parents && st.parents.from)}`));
+  for (const s of st.sibs || []) out.push(el('div', { className: 'sub' }, `${s.n}: ${dnaLine(s.from)}`));
+  for (const k of st.kids || []) if (k.from) out.push(el('div', { className: 'sub' }, `${k.n}: ${dnaLine(k.from)}`));
   out.push(el('div', { className: 'sec' }, '💼 รายได้ครอบครัว'));
   out.push(el('div', { className: 'sub' }, S.last
     ? `ครั้งล่าสุด วันที่ ${S.last.d} · +฿${S.last.total} (${S.last.items.map(i => i.n).join(', ')})`
@@ -281,6 +297,24 @@ APP.fam = famApp;
 APPS.push(['fam', '👪', 'ครอบครัว']);
 
 // ---- start hook, torch, achievements ----
+// Fill in any missing baked outfit once, so every body keeps the exact look of its NPC.
+function swBakeAll() {
+  const S = swState(); if (!S.rec) S.rec = {};
+  for (const m of swMembers()) {
+    if (m.id === 'me') continue;
+    const id = m.id, ent = swEntOf(id), look = swLookOf(id);
+    if (!look) continue;
+    const k = id === 'dad' || id === 'mom' ? fam.indexOf(ent) + 11 : id === 'spouse' ? people.indexOf(spouseP()) : id.startsWith('kid') ? 300 + (+id.slice(3)) : 700 + (+id.slice(3));
+    bakeLook(look, ent || { id, g: m.g, age: m.age }, k);
+    const r = S.rec[id];
+    if (r && r.look) {
+      normalizeLook(r.look);
+      if (!r.look.base) r.look.base = swClone(look.base || {});
+      if (r.wear && r.wear.hair && !hairOk(r.look.g, r.wear.hair)) delete r.wear.hair;
+    }
+  }
+  normalizeLook(st.look);
+}
 const _startSw = start;
 start = saved => {
   _startSw(saved);
@@ -289,6 +323,7 @@ start = saved => {
   meEntCache = null;
   if (typeof kidEnt !== 'undefined') kidEnt.cache = {};
   swGuard();
+  swBakeAll();
   swRepaintAll();
   dressPlayer(); if (typeof drawHud === 'function') drawHud();
 };

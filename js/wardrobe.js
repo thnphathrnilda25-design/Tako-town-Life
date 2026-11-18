@@ -13,7 +13,7 @@ const GLASSES = [['round', 'แว่นกลม', 90], ['square', 'แว่�
 const EXTRAS = [['scarf', 'ผ้าพันคอ', 70], ['necklace', 'สร้อยคอ', 120], ['bowtie', 'หูกระต่าย', 60], ['backpack', 'กระเป๋าเป้', 110], ['headphones', 'หูฟัง', 150], ['mask', 'หน้ากากอนามัย', 20], ['wings', 'ปีกนางฟ้า', 350],
   ['earrings', 'ต่างหู', 100], ['cape', 'ผ้าคลุมฮีโร่', 160]];
 const HAIRSTYLES = [['short', 'สั้น'], ['swept', 'ปัดข้าง'], ['bob', 'บ๊อบ'], ['long', 'ยาว']].map(([s, n]) => ({ id: s, n, style: s, hx: '', price: 0 }))
-  .concat([['spiky', 'short', 'ตั้งแหลม'], ['bun', 'long', 'เกล้ามวยสูง'], ['spacebuns', 'bob', 'มวยคู่'], ['topknot', 'short', 'ปมสูง'], ['ponytail', 'swept', 'หางม้า'], ['twintails', 'bob', 'ทวินเทล'],
+  .concat([['spiky', 'short', 'ตั้งแหลม'], ['bun', 'long', 'เกล้ามวยสูง'], ['spacebuns', 'bob', 'มวยคู่'], ['topknot', 'short', 'ปมสูง'], ['ponytail', 'long', 'หางม้า'], ['twintails', 'bob', 'ทวินเทล'],
     ['pigtails', 'bob', 'หางเปียคู่'], ['braid', 'long', 'เปียข้าง'], ['afro', 'short', 'แอโฟร'], ['curly', 'short', 'หยิก'], ['mohawk', 'short', 'โมฮอว์ก'], ['sidepart', 'short', 'แสกข้าง'], ['bowl', 'short', 'ทรงชาม'],
     ['fringe', 'bob', 'ผมหน้าม้ายาว'], ['pixie', 'short', 'พิกซี่'], ['wavy', 'long', 'ลอน'], ['messy', 'short', 'ยุ่ง'], ['slick', 'short', 'แสกหลัง']].map(([hx, style, n]) => ({ id: hx, n, style, hx, price: 120 })));
 const DYES = HAIR.concat([['#ff3a3a', '#b01a1a', '#ff9a9a'], ['#ff8a2a', '#c05a10', '#ffc080'], ['#ffe14a', '#c8a820', '#fff4a0'], ['#4aff8a', '#20a850', '#a0ffc8'], ['#3ae8e8', '#1aa0a8', '#a0ffff'],
@@ -33,7 +33,7 @@ const wearOf = () => st.wear || (st.wear = {});
 const owned = id => !!(st.owned && st.owned[id]);
 function wearPal() {
   const w = wearOf(), o = {}, it = id => id && WITEM[id];
-  const t = it(w.top), b = it(w.bottom), s = it(w.shoes), h = it(w.hat), g = it(w.gl), a = it(w.acc), hs = HAIRSTYLES.find(x => x.id === w.hair), dy = DYES[w.dye];
+  const t = it(w.top), b = it(w.bottom), s = it(w.shoes), h = it(w.hat), g = it(w.gl), a = it(w.acc), hs = HAIRSTYLES.find(x => x.id === w.hair && hairOk(st.look.g, x.id)), dy = DYES[w.dye];
   if (t) Object.assign(o, { topS: t.style, c: t.c, C: t.C, a: t.a });
   if (b) Object.assign(o, { botS: b.style, p: b.c, skirt: b.style === 'skirt' ? 1 : 0 });
   if (s) Object.assign(o, { shoeS: s.style, f: shade(s.c, -40) });
@@ -63,7 +63,7 @@ function wardrobePanel(mode) {
       if (shop && !owned(id)) return btn(`฿${price}`, () => { if (st.money < price) return say('เงินไม่พอ'); st.money -= price; (st.owned || (st.owned = {}))[id] = 1; say('ซื้อแล้ว! ใส่ได้ที่ตู้เสื้อผ้าหรือที่นี่เลย'); equip(); dressPlayer(); refreshPanel(); save(); }, st.money < price);
       return isOn ? btn('ถอด', () => { unequip(); dressPlayer(); refreshPanel(); save(); }) : btn('ใส่', () => { equip(); dressPlayer(); refreshPanel(); save(); });
     };
-    if (wTab === 'hair') for (const hs of HAIRSTYLES) { const id = 'hair:' + hs.id, own = hs.price === 0 || owned(id), on = w.hair === hs.id || (!w.hair && (hs.id === st.look.hx || (!st.look.hx && hs.id === st.look.style)));
+    if (wTab === 'hair') for (const hs of HAIRSTYLES.filter(h => hairOk(st.look.g, h.id))) { const id = 'hair:' + hs.id, own = hs.price === 0 || owned(id), on = w.hair === hs.id || (!w.hair && (hs.id === st.look.hx || (!st.look.hx && hs.id === st.look.style)));
       rows.push(row(previewOf(hs), hs.n, hs.price ? (own ? 'มีแล้ว' : `฿${hs.price}`) : 'ฟรี', action(id, hs.price, on, () => { w.hair = hs.id; }, () => { delete w.hair; }))); }
     else if (wTab === 'look') rows.push(...lookRows(shop));
     else if (wTab === 'dye') DYES.forEach((d, i) => rows.push(row(previewOf({ idx: i, hx: undefined }), `สีที่ ${i + 1}`, i < HAIR.length ? 'สีธรรมชาติ' : 'สีแฟนตาซี', action('dye:' + i, i < HAIR.length ? 0 : 60, w.dye === i, () => { w.dye = i; }, () => { delete w.dye; }))));
@@ -93,7 +93,16 @@ makePeople = () => {
   });
 };
 const _makeFamily = makeFamily;
-makeFamily = () => { _makeFamily(); fam.forEach((p, k) => { p.spr = sheet({ ...palOf(st.parents[p.id].look), ...npcWear(p, k + 11), bust: st.parents[p.id].g === 'f' }); p.h.spr = p.spr; }); };
+makeFamily = () => {
+  _makeFamily();
+  fam.forEach((p, k) => {
+    const rec = st.parents && st.parents[p.id], look = rec && rec.look;
+    if (!look) return;                        // spouses and siblings set their own sprite
+    bakeLook(look, p, k + 11);
+    p.spr = sheet({ ...palOf(look), bust: rec.g === 'f' });
+    p.h.spr = p.spr;
+  });
+};
 ACH.push(['closet', '👗 แฟชั่นนิสต้า', 'เป็นเจ้าของเสื้อผ้า 20 ชิ้น', () => Object.keys(st.owned || {}).length >= 20], ['restyle', '💇 ลุคใหม่', 'เปลี่ยนทรงผมที่ร้านเสริมสวย', () => !!st.wear?.hair]);
 console.assert(Object.keys(WITEM).length >= 100, 'at least 100 clothing items');
 console.assert(HAIRSTYLES.length >= 20 && DYES.length >= 20, 'hair choices');

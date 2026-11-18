@@ -5,7 +5,7 @@ Object.assign(ITEMS, { ring: { n: 'แหวนเพชร', p: 800, ic: '💍'
 const KID_NAMES = { f: ['อาเรีย', 'เบลล่า', 'คลีโอ', 'ดานา', 'เอลซ่า', 'เจเจ', 'จีจี้', 'โฮป'], m: ['อเล็ก', 'เบรนท์', 'โคดี้', 'ดรูว์', 'อีวาน', 'เกบ', 'ฮีธ', 'ไอแวน'] };
 const kidAge = k => Math.floor((day() - k.born) / YEAR);
 const spouseP = () => st.spouse && people.find(p => p.id === st.spouse);
-const lookOf = p => p.look || { g: p.g, style: p.pal.style, hair: Math.max(0, HAIR.findIndex(h => h[0] === p.pal.h)), skin: 1, eye: 0, shirt: 0, skirt: !!p.pal.skirt };
+const lookOf = p => p.look || { g: p.g, style: p.pal.style, hx: p.pal.hx || '', hair: Math.max(0, HAIR.findIndex(h => h[0] === p.pal.h)), skin: 1, eye: 0, shirt: 0, skirt: !!p.pal.skirt };
 const kidName = (g, taken) => KID_NAMES[g].find(n => !taken.includes(n)) || KID_NAMES[g][0];
 const takenNames = () => [...PEOPLE.map(p => p.n), ...PARENT_NAMES, st.name, ...(st.kids || []).map(k => k.n)];
 
@@ -30,6 +30,9 @@ function breakUp(p) { st.partner = null; st.engaged = null; relOf(p.id).f = Math
 function attachSpouse() {
   const p = spouseP(); if (!p) return;
   p.fam = 'spouse'; p.home = typeof myDoorB === 'function' ? myDoorB() : 0; p.spots = {};
+  p.look = normalizeLook(p.look || lookOf(p));
+  bakeLook(p.look, p, people.indexOf(p));
+  p.spr = sheet({ ...palOf(p.look), bust: p.g === 'f' && p.age >= 18 });
   p.h = { id: p.id, n: p.n, p, label: 'คู่สมรส', spr: p.spr, x: 7 * T + 16, y: 7 * T + 16, dir: 0, frame: 0, at: 0, vx: 0, vy: 0, t: 0, get age() { return p.age; } };
   if (!fam.includes(p)) fam.push(p);
 }
@@ -73,8 +76,8 @@ function divorce(p) { st.spouse = st.partner = null; p.fam = undefined; p.home =
 function birth() {
   const sp = spouseP() || (st.cohab && people.find(q => q.id === st.cohab)); if (!sp) { st.preg = null; return; }
   const g = Math.random() < .5 ? 'm' : 'f', a = st.look, b = lookOf(sp), from = {}, gene = k => { const me = Math.random() < .5; from[k] = me ? st.name : sp.n; return (me ? a : b)[k]; };
-  const tMe = Math.random() < .5, k = { g, n: '', born: day(), bond: 50, trait: tMe ? st.parents.trait : sp.trait, traitFrom: tMe ? st.name : sp.n,
-    look: { g, style: STYLES[g][ri(STYLES[g].length)], hair: gene('hair'), skin: gene('skin'), eye: gene('eye'), shirt: ri(SHIRT.length), skirt: g === 'f' && Math.random() < .5 }, from };
+  const tMe = Math.random() < .5, hp = hairPick(g), k = { g, n: '', born: day(), bond: 50, trait: tMe ? st.parents.trait : sp.trait, traitFrom: tMe ? st.name : sp.n,
+    look: { g, style: hp.style, hx: hp.hx, hair: gene('hair'), skin: gene('skin'), eye: gene('eye'), shirt: ri(SHIRT.length), skirt: g === 'f' && Math.random() < .5 }, from };
   k.n = kidName(g, takenNames()); st.kids.push(k); st.preg = null; kidEnt.cache = {};
   toast(`👶 ${g === 'f' ? 'ลูกสาว' : 'ลูกชาย'}เกิดแล้ว!`); nameKid(k);
 }
@@ -90,7 +93,11 @@ function nameKid(k) {
 }
 const kidEnt = k => {
   const c = kidEnt.cache || (kidEnt.cache = {}), key = k.n + k.born;
-  if (!c[key]) { const p = { id: 'kid' + st.kids.indexOf(k), fam: 'kid', kid: k }; const kidAgeNow = kidAge(k); c[key] = { id: p.id, n: k.n, p, spr: sheet({ ...palOf(k.look), ...npcWear({ id: p.id, g: k.g, age: kidAgeNow }, 300 + st.kids.indexOf(k)), bust: k.g === 'f' && kidAgeNow >= 18 }), x: 4 * T + 16, y: 6 * T + 16, dir: 0, frame: 0, at: 0, vx: 0, vy: 0, t: 0, get label() { const a = kidAge(k); return a < 3 ? 'ทารก' : k.g === 'f' ? 'ลูกสาว' : 'ลูกชาย'; }, get age() { return kidAge(k); } }; }
+  if (!c[key]) {
+    const p = { id: 'kid' + st.kids.indexOf(k), fam: 'kid', kid: k }, kidAgeNow = kidAge(k);
+    bakeLook(k.look, { id: p.id, g: k.g, age: kidAgeNow }, 300 + st.kids.indexOf(k));
+    c[key] = { id: p.id, n: k.n, p, spr: sheet({ ...palOf(k.look), bust: k.g === 'f' && kidAgeNow >= 18 }), x: 4 * T + 16, y: 6 * T + 16, dir: 0, frame: 0, at: 0, vx: 0, vy: 0, t: 0, get label() { const a = kidAge(k); return a < 3 ? 'ทารก' : k.g === 'f' ? 'ลูกสาว' : 'ลูกชาย'; }, get age() { return kidAge(k); } };
+  }
   return c[key];
 };
 function kidEnts() {

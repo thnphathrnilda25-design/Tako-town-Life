@@ -2,7 +2,55 @@
 // Life layer: character creator, genetics, aging. Loaded after game.js, so it can use everything game.js defines.
 const SKINS = [['#fde0c0', '#e8b890'], ['#f7cfa6', '#e2a882'], ['#e0ac7a', '#c08858'], ['#b8814e', '#946236'], ['#7a5030', '#5e3a20']];
 const EYES = ['#3a2418', '#2a6a3a', '#3a6ad8', '#6a4a8a', '#8a5a2a', '#4a4a54'];
-const STYLES = { m: ['short', 'swept', 'long'], f: ['bob', 'long', 'swept', 'short'] };
+const STYLES = { m: ['short', 'swept'], f: ['bob', 'long'] };
+// Strict hair separation: every hairstyle belongs to exactly one gender, and the base cut
+// under an extra (bun, ponytail, …) is always a base cut of that same gender.
+const HAIR_G = {
+  m: ['short', 'swept', 'spiky', 'topknot', 'afro', 'curly', 'mohawk', 'sidepart', 'bowl', 'pixie', 'messy', 'slick'],
+  f: ['bob', 'long', 'bun', 'spacebuns', 'ponytail', 'twintails', 'pigtails', 'braid', 'fringe', 'wavy'],
+};
+const HX_STYLE = { spiky: 'short', bun: 'long', spacebuns: 'bob', topknot: 'short', ponytail: 'long', twintails: 'bob', pigtails: 'bob',
+  braid: 'long', afro: 'short', curly: 'short', mohawk: 'short', sidepart: 'short', bowl: 'short', fringe: 'bob', pixie: 'short', wavy: 'long', messy: 'short', slick: 'short' };
+const HAIR_SET = { m: new Set(HAIR_G.m), f: new Set(HAIR_G.f) };
+const hairOk = (g, id) => !!id && HAIR_SET[g === 'f' ? 'f' : 'm'].has(id);
+function hairFor(g, style, hx) {          // one legal cut per body — never a mixed male/female head
+  g = g === 'f' ? 'f' : 'm';
+  const base = STYLES[g];
+  if (hairOk(g, hx)) return { style: HX_STYLE[hx] || base[0], hx };
+  return { style: base.includes(style) ? style : base[0], hx: '' };
+}
+function hairPick(g) {
+  g = g === 'f' ? 'f' : 'm';
+  const pool = HAIR_G[g], id = pool[ri(pool.length)];
+  return HX_STYLE[id] ? { style: HX_STYLE[id], hx: id } : { style: STYLES[g].includes(id) ? id : STYLES[g][0], hx: '' };
+}
+// Repairs any look coming from an old save or a swapped body: legal hair, skirt/dress only on women.
+function normalizeLook(l) {
+  if (!l) return l;
+  l.g = l.g === 'f' ? 'f' : 'm';
+  const h = hairFor(l.g, l.style, l.hx); l.style = h.style; l.hx = h.hx;
+  l.clip = l.g === 'f' && (l.hx === 'spacebuns' || l.hx === 'twintails' || l.hx === 'pigtails' || (!l.hx && l.style === 'bob')) ? 1 : 0;
+  if (l.g === 'm') {
+    if (['skirt', 'longskirt', 'plaidskirt', 'tennisskirt'].includes(l.botS)) l.botS = 'jeans';
+    if (l.topS === 'dress') l.topS = 'tee';
+    l.skirt = false;
+  } else if (l.botS === 'longskirt') l.skirt = true;
+  return l;
+}
+const dnaLine = from => from ? `สีผมจาก${from.hair} · สีผิวจาก${from.skin} · สีตาจาก${from.eye}` : 'ยังไม่ทราบที่มา';
+// Bakes the NPC's generated everyday outfit into `look.base` exactly once, so the body you
+// switch into and the NPC you walk past always share one stable appearance.
+function bakeLook(look, p, k) {
+  if (!look) return look;
+  normalizeLook(look);
+  if (!look.base && typeof npcWear === 'function') {
+    const w = npcWear(p, k) || {}, base = { ...w };
+    delete base.style; delete base.hx; delete base.clip;
+    look.base = base;
+    if (!look.hx) { const h = hairFor(look.g, w.style, w.hx); look.style = h.style; look.hx = h.hx; }
+  }
+  return normalizeLook(look);
+}
 const CREATOR_HAIR = [
   ['short', 'สั้น', ''], ['swept', 'ปัดข้าง', ''], ['long', 'ยาว', ''], ['bob', 'บ๊อบ', ''],
   ['spiky', 'ตั้งแหลม', 'spiky'], ['bun', 'เกล้ามวย', 'bun'], ['spacebuns', 'มวยคู่', 'spacebuns'], ['topknot', 'ปมสูง', 'topknot'],
@@ -10,20 +58,22 @@ const CREATOR_HAIR = [
   ['afro', 'แอโฟร', 'afro'], ['curly', 'หยิก', 'curly'], ['mohawk', 'โมฮอว์ก', 'mohawk'], ['sidepart', 'แสกข้าง', 'sidepart'],
   ['bowl', 'ทรงชาม', 'bowl'], ['fringe', 'หน้าม้ายาว', 'fringe'], ['pixie', 'พิกซี่', 'pixie'], ['wavy', 'ลอน', 'wavy'],
   ['messy', 'ยุ่ง', 'messy'], ['slick', 'แสกหลัง', 'slick'],
-].map(([id, n, hx]) => ({ id, n, style: hx ? ({ bun: 'long', spacebuns: 'bob', ponytail: 'swept', twintails: 'bob', pigtails: 'bob', braid: 'long', wavy: 'long' }[hx] || 'short') : id, hx }));
+].map(([id, n, hx]) => ({ id, n, style: hx ? (HX_STYLE[hx] || 'short') : id, hx }));
 const CREATOR_TOPS = [['tee', 'ยืด'], ['hoodie', 'ฮู้ดดี้'], ['jacket', 'แจ็คเก็ต'], ['sweater', 'สเวตเตอร์'], ['overalls', 'เอี๊ยม'], ['dress', 'เดรส']];
 const CREATOR_BOTTOMS = [['jeans', 'ยีนส์'], ['shorts', 'ขาสั้น'], ['cargo', 'คาร์โก้'], ['leggings', 'เลกกิ้ง'], ['longskirt', 'กระโปรงยาว']];
 const CREATOR_SHOES = [['plain', 'ธรรมดา'], ['sneakers', 'ผ้าใบ'], ['boots', 'บูท'], ['sandals', 'แตะรัดส้น']];
 const PARENT_NAMES = ['แดเนียล', 'ซาร่า'];          // reserved: no townsfolk or player may share these
 const palOf = l => {
-  const h = HAIR[l.hair], c = SHIRT[l.shirt], k = SKINS[l.skin];
-  return { style: l.style, hx: l.hx || '', topS: l.topS || 'tee', botS: l.botS || 'jeans', shoeS: l.shoeS || 'plain', clip: l.g === 'f' && l.style === 'bob' ? 1 : 0, skirt: l.g === 'f' && l.skirt ? 1 : 0, h: h[0], H: h[1], L: h[2],
-    c: c[0], C: c[1], a: c[2], p: PANTS[0][0], f: PANTS[0][1], sk: k[0], skd: k[1], e: EYES[l.eye] };
+  normalizeLook(l);
+  const h = HAIR[l.hair] || HAIR[0], c = SHIRT[l.shirt] || SHIRT[0], k = SKINS[l.skin] || SKINS[0];
+  return { style: l.style, hx: l.hx || '', clip: l.clip ? 1 : 0, topS: l.topS || 'tee', botS: l.botS || 'jeans', shoeS: l.shoeS || 'plain', skirt: !!l.skirt,
+    h: h[0], H: h[1], L: h[2], c: c[0], C: c[1], a: c[2], p: PANTS[0][0], f: PANTS[0][1], sk: k[0], skd: k[1], e: EYES[l.eye] || EYES[0],
+    ...(l.base || {}) };                    // base = this person's baked everyday clothes (no hair keys)
 };
 const ri = n => Math.random() * n | 0;
 const randomLook = g => {
-  const bottoms = CREATOR_BOTTOMS.filter(([id]) => g === 'f' || id !== 'longskirt'), bot = bottoms[ri(bottoms.length)][0];
-  return { g, style: STYLES[g][ri(STYLES[g].length)], hx: '', hair: ri(HAIR.length), skin: ri(SKINS.length), eye: ri(EYES.length), shirt: ri(SHIRT.length), topS: CREATOR_TOPS[ri(CREATOR_TOPS.length)][0], botS: bot, shoeS: CREATOR_SHOES[ri(CREATOR_SHOES.length)][0], skirt: g === 'f' && bot === 'longskirt' };
+  const hair = hairPick(g), bottoms = CREATOR_BOTTOMS.filter(([id]) => g === 'f' || id !== 'longskirt'), bot = bottoms[ri(bottoms.length)][0];
+  return normalizeLook({ g, style: hair.style, hx: hair.hx, hair: ri(HAIR.length), skin: ri(SKINS.length), eye: ri(EYES.length), shirt: ri(SHIRT.length), topS: CREATOR_TOPS[ri(CREATOR_TOPS.length)][0], botS: bot, shoeS: CREATOR_SHOES[ri(CREATOR_SHOES.length)][0], skirt: g === 'f' && bot === 'longskirt' });
 };
 
 // Gender wording used by the HUD, phone apps and profiles.
@@ -99,8 +149,7 @@ function familyOpts(p) {
 function thumb(spr) { const c = el('canvas', { width: 24, height: 40 }); c.getContext('2d').drawImage(spr[0][0], 0, 0); c.style.cssText = 'width:24px;height:40px;image-rendering:pixelated'; return c; }
 function familyRows() {
   const P = st.parents, you = sheet(playerPal());
-  const gene = k => `${k === 'hair' ? 'สีผม' : k === 'skin' ? 'สีผิว' : 'สีตา'}จาก${P.from[k]}`;
-  return [row(thumb(you), `${st.name} (คุณ, อายุ ${age()})`, `ได้รับ: ${['hair', 'skin', 'eye'].map(gene).join(' · ')}`),
+  return [row(thumb(you), `${st.name} (คุณ, อายุ ${age()})`, `🧬 ได้รับ: ${dnaLine(P.from)}`),
     row('🧬', `นิสัยที่ได้รับ: ${P.trait} (จาก${P.traitFrom})`, TRAIT_FX[P.trait]),
     ...fam.filter(p => p.id === 'dad' || p.id === 'mom').map(p => row(thumb(p.spr), `${p.id === 'dad' ? 'พ่อ' : 'แม่'} ${p.n} (อายุ ${p.age})`, `${p.trait} · ${TRAIT_FX[p.trait]} · ความสนิท ${Math.floor(relOf(p.id).f)}/100`))];
 }
@@ -134,8 +183,8 @@ function openCreator() {
     controls.replaceChildren(
       el('label', {}, 'ชื่อ'), input,
       el('label', {}, 'เริ่มตอนอายุ'), el('div', { className: 'opts' }, el('button', { className: startAge === 16 ? 'on' : '', textContent: '16 ปี (แนะนำ)', onclick: () => { startAge = 16; draw(); } }), el('button', { className: startAge === 6 ? 'on' : '', textContent: '6 ขวบ (เล่นวัยเด็ก)', onclick: () => { startAge = 6; draw(); } })),
-      el('label', {}, 'เพศ'), opt([['ผู้ชาย', look.g === 'm', () => { Object.assign(look, { g: 'm', style: STYLES.m[0], hx: '', skirt: false }); draw(); }], ['ผู้หญิง', look.g === 'f', () => { Object.assign(look, { g: 'f', style: STYLES.f[0], hx: '' }); draw(); }]]),
-      el('label', {}, 'ทรงผม'), opt(CREATOR_HAIR.map(h => [h.n, (look.hx || look.style) === h.id, () => { look.style = h.style; look.hx = h.hx; draw(); }])),
+      el('label', {}, 'เพศ'), opt([['ผู้ชาย', look.g === 'm', () => { Object.assign(look, { g: 'm' }, hairFor('m', look.style, look.hx), { skirt: false }); draw(); }], ['ผู้หญิง', look.g === 'f', () => { Object.assign(look, { g: 'f' }, hairFor('f', look.style, look.hx)); draw(); }]]),
+      el('label', {}, 'ทรงผม'), opt(CREATOR_HAIR.filter(h => hairOk(look.g, h.id)).map(h => [h.n, (look.hx || look.style) === h.id, () => { look.style = h.style; look.hx = h.hx; draw(); }])),
       el('label', {}, 'สีผม'), sw('hair', HAIR, v => v[0]),
       el('label', {}, 'สีผิว'), sw('skin', SKINS, v => v[0]),
       el('label', {}, 'สีตา'), sw('eye', EYES, v => v),
