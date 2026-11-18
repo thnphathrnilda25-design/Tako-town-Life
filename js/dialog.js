@@ -19,8 +19,9 @@ const _relName = relName; relName = (id, f) => hatOf(id) >= 80 ? 'ศัตร�
 function react(p, key) {
   const r = relOf(p.id), tr = p.trait || 'kind'; let v = PREF[tr]?.[key] ?? 0; if (Math.random() < .25) v += Math.random() < .5 ? -1 : 1; if (lv('charm') >= 5 && v < 0 && Math.random() < .4) v++;
   v = Math.max(-2, Math.min(2, v)); lastV = v; const L = LINES2[key][0];
-  if (v > 0) { r.f = Math.min(100, r.f + 3 * v + lv('charm') * .4); fx({ mood: 2 + v }); }
-  else if (v === 0) r.f = Math.min(100, r.f + 1);
+  // One good chat is enough to unlock a date, two unlock a confession (see romanceable/personOpts).
+  if (v > 0) { r.f = Math.min(100, r.f + 10 + 2 * v + lv('charm') * .4); fx({ mood: 2 + v }); }
+  else if (v === 0) r.f = Math.min(100, r.f + 10);
   else { r.f = Math.max(0, r.f + 4 * v); r.h = Math.min(100, hatOf(p.id) + 8 * -v); fx({ mood: -2 }); }
   return `${p.n}: ${v > 0 ? L[0] : v === 0 ? L[1] : L[2]}`;
 }
@@ -34,7 +35,7 @@ function talk(p) {
     ['😠 ด่าพวกเขา', () => { r.tn++; insult(p, 20, 15, `${p.n}: "กล้าดียังไง!"`); }], ['😈 ข่มขู่', () => { r.tn++; threaten(p); }]]);
 }
 function asking(p) {
-  lastV = 1; const r = relOf(p.id); r.f = Math.min(100, r.f + 3 + lv('charm') * .5); fx({ mood: 4 }); xp('charm', 6); tick(8);
+  lastV = 1; const r = relOf(p.id); r.f = Math.min(100, r.f + 10 + lv('charm') * .5); fx({ mood: 4 }); xp('charm', 6); tick(8);
   let line = (p.says || ['สวัสดี!'])[ri(p.says.length)];
   if (r.f >= 40 && Math.random() < .4) { const secret = [...p.love, ...p.like].find(i => !r.known.includes(i)); if (secret) { line = `ระหว่างเรานะ… เราชอบ ${ITEMS[secret].n} มากเลย`; r.known.push(secret); } }
   if (r.f >= 70 && p.like.length && day() - r.bf >= 3) { r.bf = day(); const g = p.like[ri(p.like.length)]; addItem(g); setTimeout(() => toast(`🎁 ${p.n} ให้ ${ITEMS[g].ic} ${ITEMS[g].n} กับคุณ`), 500); }
@@ -61,7 +62,7 @@ function apologize(p, gift) {
 }
 // hatred shapes the rest of the game
 const _po6 = personOpts;
-personOpts = p => { const o = _po6(p); if (p.fam) return o; if (hated(p)) return o.filter(x => x[0] === 'คุยด้วย' || /คุย/.test(x[0])); return hatOf(p.id) >= 20 ? o.filter(x => !/เดท|สารภาพ|ขอแต่งงาน/.test(x[0])) : o; };
+personOpts = p => { const o = _po6(p); if (p.fam) return o; if (hated(p)) return o.filter(x => x[0] === 'คุยด้วย' || /คุย/.test(x[0])); return o; };
 const _up6 = updatePerson;
 updatePerson = (p, dt) => {
   if (!p.fam && hated(p) && scene === town && player && p.slot !== 'in') {      // flee when the player is near

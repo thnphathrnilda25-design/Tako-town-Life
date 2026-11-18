@@ -105,7 +105,7 @@ function nmEnsureRoster() {
   // NPC couples are real households now: seed mutual mates and wedding dates once.
   for (const [a, b] of NM_PAIRS) {
     const A = PEOPLE.find(p => p.id === a), B = PEOPLE.find(p => p.id === b);
-    if (!A || !B || A.fam || B.fam || st.gone?.[a] || st.gone?.[b]) continue;
+    if (!A || !B || A.fam || B.fam || st.solo?.[a] || st.solo?.[b] || st.gone?.[a] || st.gone?.[b]) continue;
     if ([a, b].includes(st.spouse) || [a, b].includes(st.partner) || [a, b].includes(st.cohab) || [a, b].includes(st.engaged)) continue;
     if (!A.mate && !B.mate) { A.mate = b; B.mate = a; }
     const ea = people.find(p => p.id === a), eb = people.find(p => p.id === b);

@@ -1069,8 +1069,12 @@ function stCast() {
   set('leo', 14, 'student');
   set('cora', 72, 'retiree');
   set('nora', 43);
-  const ryan = stNpc('ryan'), ivy = stNpc('ivy');
-  if (ryan && ivy) { if (!ryan.mate) ryan.mate = 'ivy'; if (!ivy.mate) ivy.mate = 'ryan'; }
+  const ryan = stNpc('ryan'), ivy = stNpc('ivy'), solo = id => !!st.solo?.[id];
+  const taken = id => st.partner === id || st.spouse === id;
+  if (ryan && ivy && !solo('ryan') && !solo('ivy') && !taken('ryan') && !taken('ivy')) {
+    if (!ryan.mate) ryan.mate = 'ivy';
+    if (!ivy.mate) ivy.mate = 'ryan';
+  }
 }
 const _startStories = start;
 start = saved => {

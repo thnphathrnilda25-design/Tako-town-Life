@@ -587,6 +587,9 @@ function spotFor(place, k) {
 }
 let player, scene = town, folks = [], people = [], cat;
 const relOf = id => st.rel[id] || (st.rel[id] = { f: 0, talk: 0, gift: 0, date: 0, bf: 0, known: [] });
+// Romance is open to every adult townsperson, including people who already have a partner or are older.
+// `p.date` in walk.js still limits NPC-to-NPC dating; this helper is the player's rule.
+const romanceable = p => !!p && (p.id === st.partner || p.id === st.spouse || (!p.fam && p.age >= 18 && !st.gone?.[p.id]));
 const isKin = id => id === 'dad' || id === 'mom' || /^kid\d+$/.test(id) || st.spouse === id || st.partner === id;   // family is not "a friend" for achievements
 const friendBest = (min) => Object.entries(st.rel).some(([id, r]) => !isKin(id) && (r.f || 0) >= min);
 var relName = (id, f) => st.partner === id ? 'แฟน 💕' : f >= 70 ? 'เพื่อนสนิท' : f >= 40 ? 'เพื่อน' : f >= 20 ? 'คนรู้จัก' : 'คนแปลกหน้า';
@@ -642,7 +645,7 @@ function drawEnt(e) {
   g.drawImage(e.spr[e.dir][e.frame] || e.spr[e.dir][0], Math.round(x - 12 * k), Math.round(y - 38 * k), Math.round(24 * k), Math.round(40 * k));
   g.globalAlpha = 1;
   if (typeof drawPersonProp === 'function' && e.person) drawPersonProp(e);
-  const romanceMark = e.person && (st.partner === e.id || (!st.partner && e.date));
+  const romanceMark = e.person && (st.partner === e.id || (!st.partner && romanceable(e) && (st.rel[e.id]?.f || 0) >= 10));
   if (romanceMark) {
     R('#ff7ab8', x - 4, y - 51, 3, 2); R('#ff7ab8', x + 1, y - 51, 3, 2);
     R('#ff7ab8', x - 5, y - 49, 10, 3); R('#ff7ab8', x - 4, y - 46, 8, 2);
@@ -834,15 +837,17 @@ function checkPromo() {
 // ---- relationships ----
 function personOpts(p) {
   const r = relOf(p.id), o = [['คุยด้วย', () => talk(p)], ['ให้ของขวัญ', () => giftPanel(p)]];
-  if (p.date && r.f >= 60 && (!st.partner || st.partner === p.id)) o.push(['ชวนไปเดท ฿80', () => date(p)]);
-  if (p.date && r.f >= 90 && !st.partner) o.push(['สารภาพรัก 💐', () => confess(p)]);
+  if (romanceable(p) && r.f >= 10 && (!st.partner || st.partner === p.id)) o.push(['ชวนไปเดต 💕', () => date(p)]);
+  if (romanceable(p) && r.f >= 20 && !st.partner) o.push(['สารภาพรัก 💘', () => confess(p)]);
   return o;
 }
 function talk(p) {
   const r = relOf(p.id); p.dir = faceTo(p, player);
-  if (r.talk === day()) return say(`${p.n}: "วันนี้คุยกันแล้วน้า ไว้พรุ่งนี้นะ"`);
-  r.talk = day();
-  const gain = 3 + kindBonus() + lv('charm') * 0.6 + (st.partner === p.id ? 3 : 0);
+  const today = day();
+  if (r.talk !== today) { r.talk = today; r.talk2 = 0; }            // first chat of the day
+  else if (r.talk2 !== today) { r.talk2 = today; }                   // one more chat is fine
+  else return say(`${p.n}: "คุยกันเยอะแล้ววันนี้ พรุ่งนี้มาใหม่นะ"`);
+  const gain = 12 + kindBonus() * 2 + lv('charm') * 0.8 + (st.partner === p.id ? 3 : 0);
   r.f = Math.max(0, Math.min(100, r.f + gain)); fx({ mood: st.partner === p.id ? 10 : 5 }); xp('charm', 10); tick(10);
   let line;
   if (r.f >= 60 && rnd() < .35) {
@@ -873,12 +878,34 @@ function giveGift(p, id) {
 function date(p) {
   const r = relOf(p.id);
   if (r.date === day()) return say('วันนี้เดทไปแล้ว');
-  if (st.money < 80) return say('เงินไม่พอ');
-  fade(() => { r.date = day(); r.f = Math.min(100, r.f + 6); st.stats.dates++; fx({ money: -80, mood: 25, food: 30 }); tick(120); say(`ไปเดทที่คาเฟ่กับ${p.n} หัวเราะกันทั้งวัน 💕`); save(); }, 700);
+  if (!romanceable(p)) return say(`${p.n} ยังไม่พร้อมเปิดใจตอนนี้`);
+  fade(() => { r.date = day(); r.f = Math.min(100, r.f + 10); st.stats.dates++; fx({ mood: 30, food: 30 }); tick(120); say(`ไปเดทที่คาเฟ่กับ${p.n} หัวเราะกันทั้งวัน 💕`); save(); }, 500);
+}
+function detachMate(p) {                       // a new romance ends the NPC's existing generated pairing
+  const base = PEOPLE.find(q => q.id === p.id);
+  let mateId = p.mate || base?.mate;
+  if (!mateId && st.npcLove) {
+    const c = Object.values(st.npcLove).find(c => c.a === p.id || c.b === p.id);
+    if (c) mateId = c.a === p.id ? c.b : c.a;
+  }
+  if (mateId) {
+    for (const other of [people.find(q => q.id === mateId), PEOPLE.find(q => q.id === mateId)])
+      if (other && other.mate === p.id) other.mate = null;
+    st.solo = st.solo || {}; st.solo[p.id] = 1; st.solo[mateId] = 1;
+  }
+  if (p.mate) p.mate = null;
+  if (base && base.mate) base.mate = null;
+  // remove any generated NPC-to-NPC romance that would keep blocking the player's options
+  if (st.npcLove) for (const [k, c] of Object.entries(st.npcLove))
+    if (c.a === p.id || c.b === p.id || c.a === mateId || c.b === mateId) delete st.npcLove[k];
+  if (typeof TL !== 'undefined') TL.loveMap = null;
 }
 function confess(p) {
-  if (!have('bouquet')) return say('ต้องมีช่อดอกไม้ใหญ่ 💐 (ซื้อที่มินิมาร์ท)');
-  addItem('bouquet', -1); st.partner = p.id; fx({ mood: 40 });
+  if (!romanceable(p)) return say(`${p.n} ยังไม่พร้อมเปิดใจตอนนี้`);
+  if (relOf(p.id).f < 20) return say(`${p.n}: "เรายังไม่รู้จักกันดีพอนะ…" (ความสนิท 20+)`);
+  if (st.partner && st.partner !== p.id) return say('คุณมีคนรักอยู่แล้ว — ถ้าจะเปลี่ยนใจ ต้องบอกเลิกก่อน');
+  detachMate(p);
+  st.partner = p.id; fx({ mood: 40 });
   toast(`💕 ${p.n} ตอบตกลง! ตอนนี้เป็นแฟนกันแล้ว`); say(`${p.n}: "จริงๆ ฉันก็รอให้เธอพูดอยู่นะ..."`); save();
 }
 
@@ -1064,8 +1091,8 @@ function journal(tab = jTab) {
       const r = relOf(p.id), hearts = '❤️'.repeat(Math.floor(r.f / 20)) + '🤍'.repeat(5 - Math.floor(r.f / 20));
       const known = k => p[k].map(id => r.known.includes(id) ? ITEMS[id].ic : '❓').join(' ');
       const role = ROLE_NAME[p.role] ? ROLE_NAME[p.role] + ' · ' : '';
-      return row(p.date ? '💗' : '🙂', `${p.n} — ${relName(p.id, r.f)}`, `${role}${hearts} ${Math.floor(r.f)}/100 · ชอบมาก ${known('love')} · ชอบ ${known('like')} · ไม่ชอบ ${known('hate')}`);
-    }).concat(el('div', { className: 'sub' }, 'คุยทุกวันเพื่อสนิทขึ้น · สนิท 40+ จะบอกของที่ชอบ · 60+ ชวนเดทได้ · 90+ สารภาพรักด้วยช่อดอกไม้ใหญ่'));
+      return row(romanceable(p) ? '💗' : '🙂', `${p.n} — ${relName(p.id, r.f)}`, `${role}${hearts} ${Math.floor(r.f)}/100 · ชอบมาก ${known('love')} · ชอบ ${known('like')} · ไม่ชอบ ${known('hate')}`);
+    }).concat(el('div', { className: 'sub' }, 'คุย 1–2 ครั้งก็ชวนเดตได้ · สารภาพรักได้ที่ความสนิท 20 · ผู้ใหญ่ทุกคนจีบได้'));
     if (jTab === 'ach') body = [el('div', { className: 'sub' }, `ปลดล็อก ${Object.keys(st.ach).length}/${ACH.length}`),
       ...ACH.map(([id, n, d]) => row(st.ach[id] ? '🏆' : '🔒', n, st.ach[id] ? `สำเร็จวันที่ ${st.ach[id]}` : d || 'ยังไม่ปลดล็อก'))];
     return [tabs, ...body];

@@ -35,7 +35,7 @@ Then open `http://localhost:8765/pixel-town-32.html`.
 | `js/minis.js` | Mini-games: timing bar, quiz, Simon, dodge runner, memory, dance. |
 | `js/anim.js` | Activity animations and progress bar. Wraps the furniture and town actions. |
 | `js/love.js` | Dating, proposals, weddings, children, playing as your child. |
-| `js/dating.js` | Relationship progress panel (stage, next step, progress bar) and one free casual walk per NPC per day; adds both options to every eligible adult through `personOpts`. |
+| `js/dating.js` | Relationship progress panel (stage, next step, progress bar), free dates from 10 friendship, and confession from 20 with no gift. Player romance is open to every adult 18+ — including partnered and older townsfolk — with one free casual walk per NPC per day. |
 | `js/phone.js` | Phone: messages, camera, shop delivery, bank, map, calendar, games. |
 | `js/walk.js` | A* pathfinding for NPCs, personal schedules, real walk-to-door building entry with fade in/out, held props and idle chats, NPC aging and yearly world events (births, marriages, deaths). |
 | `js/dialog.js` | Conversation choices, hatred, rumours, apologies. |

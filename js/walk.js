@@ -207,14 +207,15 @@ function applyEvent(e, live) {
 }
 const replayWorld = () => { for (const e of world().ev) applyEvent(e, false); };
 const _mp9 = makePeople;
-makePeople = () => { replayWorld(); _mp9(); people.forEach((ent, k) => { if (PEOPLE[k]) { liveFields(ent, PEOPLE[k], k); if (PEOPLE[k].mate) ent.mate = PEOPLE[k].mate; } }); };
+makePeople = () => { replayWorld(); _mp9(); people.forEach((ent, k) => { if (PEOPLE[k]) { liveFields(ent, PEOPLE[k], k); if (PEOPLE[k].mate) ent.mate = PEOPLE[k].mate; } });
+  for (const id in st.solo || {}) { const bp = PEOPLE.find(p => p.id === id), ep = people.find(p => p.id === id); if (bp) bp.mate = null; if (ep) ep.mate = null; } };
 function yearlyWorld() {
   const W = world(), y = yearsPassed(); if (y <= W.year) return; W.year = y;
   const names = takenNames().concat(PEOPLE.map(p => p.n)), news = [];
   for (const p of PEOPLE.filter(alive)) {                       // passing away
     const a = p.age; if (a >= 78 && Math.random() < (a - 77) * .05) { const e = { t: 'die', id: p.id, y }; W.ev.push(e); applyEvent(e, true); news.push(`🕯️ ${p.n} เสียชีวิตด้วยวัย ${a} ปี`); if ((st.rel[p.id]?.f || 0) >= 40) fx({ mood: -15 }); }
   }
-  const singles = PEOPLE.filter(p => alive(p) && !p.mate && p.age >= 20 && p.age <= 45 && p.id !== st.partner && p.id !== st.spouse && p.id !== st.engaged);
+  const singles = PEOPLE.filter(p => alive(p) && !p.mate && !st.solo?.[p.id] && p.age >= 20 && p.age <= 45 && p.id !== st.partner && p.id !== st.spouse && p.id !== st.engaged);
   for (const a of singles) {                                    // marriage
     if (a.mate || Math.random() > .3) continue; const b = singles.find(b => b !== a && !b.mate && b.g !== a.g && Math.abs(b.age - a.age) <= 8); if (!b) continue;
     const e = { t: 'marry', a: a.id, b: b.id, y }; W.ev.push(e); applyEvent(e, true); news.push(`💒 ${a.n} กับ ${b.n} แต่งงานกัน`);
@@ -228,5 +229,5 @@ function yearlyWorld() {
   news.slice(0, 3).forEach((t, i) => setTimeout(() => toast(`📰 ข่าวเมือง: ${t}`), 900 * (i + 1))); if (news.length) save();
 }
 const _lt5 = lifeTick; lifeTick = () => { _lt5(); yearlyWorld(); };
-const _po5 = personOpts; personOpts = p => { const o = _po5(p); return p.mate && !p.fam ? o.filter(x => !/เดท|สารภาพ|ขอแต่งงาน/.test(x[0])) : o; };
+const _po5 = personOpts; personOpts = p => _po5(p);   // partnered NPCs stay dateable for the player (see romanceable)
 console.assert(findPath(10 * T, 12 * T, 20 * T, 14 * T) !== undefined, 'pathfinder runs');

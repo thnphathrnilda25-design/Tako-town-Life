@@ -49,7 +49,7 @@ const ACTS16 = [
   ['kiss', '💋 หอมแก้ม / จูบ', 'love', 1.6, p => {
     if (age() < 18 || p.age < 18) return say('ทำไม่ได้: ต้องเป็นผู้ใหญ่ทั้งสองคน');
     if (partnerOf(p)) { relF(p, 5); fx({ mood: 15 }); mem(p, 'kiss', 2, 'จูบ'); return npcReply(p, 'รักนะ 💕', 'happy'); }
-    if (relOf(p.id).f >= 85 && p.date && !st.partner) { st.partner = p.id; relF(p, 5); fx({ mood: 25 }); toast(`💕 ${p.n} ตอบรับ! เป็นแฟนกันแล้ว`); mem(p, 'kiss', 2, 'จูบแรก'); return npcReply(p, 'จริงๆ ฉันก็รอให้เธอทำแบบนี้อยู่นะ…', 'happy'); }
+    if (relOf(p.id).f >= 20 && (!st.partner || st.partner === p.id) && (typeof romanceable === 'function' ? romanceable(p) : p.date)) { if (!st.partner) { if (typeof detachMate === 'function') detachMate(p); st.partner = p.id; } relF(p, 5); fx({ mood: 25 }); toast(`💕 ${p.n} ตอบรับ! เป็นแฟนกันแล้ว`); mem(p, 'kiss', 2, 'จูบแรก'); return npcReply(p, 'จริงๆ ฉันก็รอให้เธอทำแบบนี้อยู่นะ…', 'happy'); }
     relH(p, 15); relF(p, -12); fx({ mood: -10 }); mem(p, 'kiss', -2, 'จูบโดยไม่ยินยอม'); npcReply(p, 'ทำอะไรน่ะ! อย่ามาทำแบบนี้!', 'angry');
   }],
   ['comfort', '🫂 ปลอบใจ', 'tear', 1.4, p => { const sad = mindOf(p)[2] === 'sad'; relF(p, sad ? 6 : 1); fx({ mood: 4 }); mem(p, 'comfort', 1, 'ปลอบใจ'); npcReply(p, sad ? 'ขอบคุณนะ… รู้สึกดีขึ้นเยอะเลย' : 'ฉันโอเคนะ แต่ขอบคุณที่เป็นห่วง', sad ? 'happy' : 'neutral'); }],

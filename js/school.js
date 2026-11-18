@@ -56,7 +56,9 @@ for (const k of ['shelf', 'pc']) { const f = FURN_ACTS[k]; FURN_ACTS[k] = F => [
 const _pc = FURN_ACTS.pc; FURN_ACTS.pc = F => _pc(F).filter(o => !(age() < 13 && o[0].includes('ฟรีแลนซ์')));
 const _jobOpts = jobOpts; jobOpts = jid => age() < 16 ? [['อายุยังน้อย (ต้อง 16+)', () => say('ต้องอายุ 16 ปีขึ้นไปจึงจะทำงานได้')]] : _jobOpts(jid);
 const _po = personOpts;
-personOpts = p => _po(p).filter(o => !/เดท|สารภาพ/.test(o[0]) || (age() >= 18 && p.age >= 18 && Math.abs(p.age - age()) <= 10));
+// Adults-only rule for NPCs, but the player may still be a teenager (the default 16-year-old start).
+// `romanceable` holds the real gate, so keep date/confess for every eligible adult.
+personOpts = p => _po(p).filter(o => !/เดท|เดต|สารภาพ/.test(o[0]) || (typeof romanceable === 'function' ? romanceable(p) : (p.age >= 18 && !p.fam)));
 
 const _lifeTick = lifeTick;
 lifeTick = () => {

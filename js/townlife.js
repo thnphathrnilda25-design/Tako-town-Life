@@ -157,7 +157,7 @@ function romanceDaily() {
     const r = st.rel?.[p.id];
     return !!r && ((r.f || 0) >= 40 || (r.date || 0) > 0 || (r.gift || 0) >= 3);
   };
-  const singles = people.filter(p => !p.fam && alive(p) && !p.mate && p.age >= 18 && p.age <= 50 && !loveOf(p) && !you.includes(p.id)
+  const singles = people.filter(p => !p.fam && alive(p) && !p.mate && p.age >= 18 && p.age <= 50 && !loveOf(p) && !st.solo?.[p.id] && !you.includes(p.id)
     && (st.partner || !playerBond(p)));
   for (let i = 0; i < 3 && singles.length > 1; i++) {
     const a = singles[ri(singles.length)], b = singles.find(b => b !== a && b.g !== a.g && Math.abs(b.age - a.age) <= 10 && (aff(a, b) >= 1 || hash01(a.k * 13 + b.k + day()) < .12));
@@ -165,7 +165,7 @@ function romanceDaily() {
   }
   for (const [k, c] of Object.entries(L)) {
     const A = PEOPLE.find(p => p.id === c.a), Bp = PEOPLE.find(p => p.id === c.b);
-    if (!A || !Bp || !alive(A) || !alive(Bp) || A.mate || Bp.mate) { delete L[k]; continue; }
+    if (!A || !Bp || !alive(A) || !alive(Bp) || A.mate || Bp.mate || st.solo?.[A.id] || st.solo?.[Bp.id]) { delete L[k]; continue; }
     if (aff(A, Bp) <= -1 || Math.random() < .002) { delete L[k]; A2()[k] = (A2()[k] || 0) - 1; townNews(`💔 ${A.n} กับ ${Bp.n} เลิกกันแล้ว`); }
     else if (!c.eng && day() - c.since >= 8 && Math.random() < .15) { c.eng = day(); townNews(`💍 ${A.n} ขอ ${Bp.n} แต่งงาน! เธอตอบตกลง`); }
     else if (c.eng && day() - c.eng >= 4) {
@@ -179,7 +179,8 @@ function romanceDaily() {
 const _poTL = personOpts;
 personOpts = p => {
   let o = _poTL(p); const lo = !p.fam && loveOf(p);
-  if (lo) o = [...o.filter(x => !/เดท|สารภาพ|ขอแต่งงาน|จีบ/.test(x[0])), [`💑 กำลังคบกับ${nameOf(lo)}`, () => say(`${p.n} มีแฟนแล้ว (${nameOf(lo)}) — ความรักของคนอื่นต้องเคารพนะ`)]];
+  // Partnered townsfolk stay romanceable for the player; the old partner is detached on confession.
+  if (lo) o = [...o, [`💑 กำลังคบกับ${nameOf(lo)}`, () => say(`${p.n} กำลังคบกับ${nameOf(lo)}อยู่ — แต่ถ้าคุณจริงจัง ความสัมพันธ์นี้ก็อาจเปลี่ยนไป`)]];
   const F = st.favor; if (F && F.id === p.id && have(F.item)) o = [[`🎁 ส่ง${ITEMS[F.item].n}ที่ขอไว้`, () => {
     addItem(F.item, -1); st.money += F.pay; const r = relOf(p.id); r.f = Math.min(100, r.f + 8); if (typeof remember === 'function') remember(p.id, 'favor', 2, 'ช่วยหาของให้');
     st.favor = null; say(`${p.n}: "ขอบคุณมากเลย! นี่ค่าของ ฿${F.pay} นะ" (ความสนิท +8)`); save();
