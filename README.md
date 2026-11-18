@@ -65,6 +65,7 @@ Then open `http://localhost:8765/pixel-town-32.html`.
 | `js/timeskip.js` | Sleep through whole years from the bed: 🌌 นอนข้ามเวลา offers 1/2/3/5/10 years, simulates every birthday inside the skip (aging, parent deaths, town news, inflation, job wages), auto-resolves missed story chapters, and reports everything in one 🌅 summary panel. Sleeping is free. Old saves get `st.ts` lazily. |
 | `js/swap.js` | Family switching: the `👪 ครอบครัว` phone app plays any household member (parents, spouse, siblings, kids of any age) back and forth for free, leaves the body you left behind as an NPC living at home, keeps one shared household purse while skills/inventory/outfit/job stay per person, warps you home from anywhere, and pays the family members you are not playing at 18:00. Haircuts, dyes and outfits you change while playing a body are written back to that body's record and NPC sprite; every body sprite is built from `palOf(look)` plus its baked `look.base`, so the person you switch into is pixel-identical to the NPC you left behind. A 🧬 DNA section in the app lists which parent gave each hair colour, skin tone and eye colour. Old saves get `st.famSw` and `st.ageShift0` lazily. |
 | `js/sibling.js` | Siblings rolled at the start of a new life (22% none, 46% one, 32% two): an older brother/sister or younger one, 1–5 years apart, with their own name, gender, trait, schedule, DNA record from พ่อ/แม่, and a baked everyday outfit. They live in the house, show up in the `👪 ครอบครัว` app, journal and family rows, can be switched into like any family member, and answer to คุยด้วย / กอด / เล่นด้วยกัน / ขอเงินพี่ / ให้ของขวัญ. `ensureSibs()` is idempotent, so `makeFamily`, `passTorch` and `start` can rebuild the household without duplicating anyone. |
+| `js/famgig.js` | Family help gigs: walk up to a parent, sibling or spouse at their workplace, at school or at home in the evening and choose “ช่วยงาน”. You get a share of their wage (45% at work, a smaller household rate at home, nothing but skill and bond for school/toddler help), +4 closeness, a little skill XP, and they remember it. Once per person per day, reset at midnight. Family members who are inside a building are reachable through that building's door option; the 👪 app lists who still needs a hand today and the running total earned. Old saves get `st.fgig` lazily. |
 | `js/system.js` | Title screen with save slots, pause menu, settings. Any Escape that closes a conversation is swallowed so the pause menu cannot open on top of it. |
 
 ## Load order (important)
@@ -76,7 +77,7 @@ people, game, mapart, wearart, life, seasons, school, shops, pets, wardrobe, fas
 minis, anim, love, phone, walk, dialog, events, audio, collect, biz, quests, adventure,
 mayor, talkbox, goals, wallet, lively, homes, family, collections, career, tech, income,
 housing, social, memory, realism, townlife, npclife, npcdeep, npcmove, nightlife, tutorial, lighting,
-status, safety, dating, stories, funtime, timeskip, sibling, swap, system
+status, safety, dating, stories, funtime, timeskip, sibling, swap, famgig, system
 ```
 
 Modules are plain scripts that share one global scope. A later module can replace or wrap an earlier one's functions (for example `talk`, `say`, `updatePerson`, `personOpts`, `seasonTick`, `lifeTick`, `drawEnt`, `update`). Changing the order will break things. Add new modules before `system.js`, and register them in the array at the bottom of the HTML.
@@ -158,7 +159,7 @@ keepsake photo lands in the camera album. Three activities in one day (🌟) and
 (🔥) give a small mood bonus. All state is created lazily, so old saves load unchanged, and nothing
 here is required for the story or the money balance.
 
-Load order now ends with: `… career, tech, income, housing, social, memory, realism, townlife, npclife, npcdeep, npcmove, nightlife, tutorial, lighting, status, safety, dating, stories, funtime, timeskip, sibling, swap, system`. Backups of the files before the sprite update: `js.backup-before-sprites/`.
+Load order now ends with: `… career, tech, income, housing, social, memory, realism, townlife, npclife, npcdeep, npcmove, nightlife, tutorial, lighting, status, safety, dating, stories, funtime, timeskip, sibling, swap, famgig, system`. Backups of the files before the sprite update: `js.backup-before-sprites/`.
 
 ## Sleeping through years (`js/timeskip.js`)
 
@@ -249,6 +250,26 @@ the first morning so the summary is not buried under a pop-up.
   แล้วจำชื่อผู้ให้ไว้ใน `from`; `dnaLine(from)` แปลงเป็นข้อความ `สีผมจาก… · สีผิวจาก… · สีตาจาก…`
   แสดงในแอป 👪 (ทั้งของคุณ พี่น้อง และลูก) และในสมุดบันทึก — ค่าที่แสดงตรงกับสีที่วาดจริงเสมอ
   เพราะทุกสไปรต์ใช้ `palOf(look)` ตัวเดียวกัน
+
+## ช่วยงานครอบครัว (`js/famgig.js`)
+
+เดินไปหาคนในบ้านแล้วเลือก **“ช่วยงาน…”** — ได้เงิน ส่วนแบ่งจากค่าจ้างของเขา ความสนิท และสกิล
+
+- **ที่ทำงาน**: ยืนที่ประตูออฟฟิศ/คาเฟ่/มินิมาร์ท/ร้านเฟอร์นิเจอร์ หรือโรงเรียน จะมีตัวเลือก
+  `ช่วยงานที่คาเฟ่กับ ซาร่า (45 นาที · +฿56)` — ได้ **45% ของค่าจ้างรายวัน**ของคนนั้น และมีโอกาส 28%
+  ได้ทิป ฿10–25 (ปัดเศษตาม `st.infl` ผ่าน `swWage`)
+- **ที่บ้าน** (ตอนเย็น/กลางคืนที่ทุกคนอยู่บ้าน): `ช่วยงานที่บ้าน (20 นาที · +฿46)` — ใช้เวลา 20 นาที
+  ได้ `15 + 18% ของค่าจ้าง`
+- **โรงเรียน**: `ช่วยงานที่โรงเรียนกับ น้อง…` — ไม่ได้เงิน แต่ได้ `ตรรกะ` +8 และความสนิท
+- **น้องเล็กกว่า 6 ขวบ**: `ช่วยดูน้อง` — ไม่มีเงิน ได้ `ศิลปะ` +8, อารมณ์ +5 และความสนิท
+- ทุกครั้ง: ความสนิท +4 (สูงสุด 100), สกิล +8, พลังงาน −6, อาหาร −3, พลังใจ +5, และNPC
+  จำได้ (`remember(id,'help',…)`) — **วันละครั้งต่อคน** รีเซ็ตตอนขึ้นวันใหม่
+- แอป 👪 มีส่วน **🤝 ช่วยงานครอบครัว** บอกว่าใครช่วยแล้ววันนี้ (✅) ใครยังไม่ได้ช่วย และยอดรวมที่หาได้
+- คนที่ทำงานอยู่ในอาคารจะคลิกไม่ได้ จึงเพิ่มตัวเลือกเดียวกันที่ **ประตูอาคารนั้น** (`fgWrapTargets`
+  ห่อ `opts` ของ `town.targets` แบบ getter ตามพิกัด `BUILDINGS[].ix/iy`) โดยไม่ทับตัวเลือกเดิม
+  (สมัครงาน/งานพิเศษ ยังอยู่ครบ)
+- พี่น้องมี `role` ตามวัย (`student` < 18, `worker` 18+) และเด็กเล็กได้ `_sched = [[0,'in']]`
+  จึงอยู่บ้านทั้งวัน ไม่เดินไปโรงเรียนเอง
 
 ## Map redesign (`js/mapart.js`, loaded right after `game.js`)
 

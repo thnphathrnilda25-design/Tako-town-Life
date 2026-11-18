@@ -35,9 +35,10 @@ function syncSibs() {
     s.id = 'sib' + i;
     const a = sibAge(s);
     bakeLook(s.look, { id: s.id, g: s.g, age: a }, 700 + i);
-    const p = { id: s.id, n: s.n, fam: 'sib', g: s.g, trait: s.trait, date: 0, love: [], like: [], hate: [], sched: sibSched(a), home: 0, spots: {}, k: 70 + i, person: 1, slot: 'in',
+    const p = { id: s.id, n: s.n, fam: 'sib', g: s.g, trait: s.trait, role: a < 18 ? 'student' : 'worker', date: 0, love: [], like: [], hate: [], sched: sibSched(a), home: 0, spots: {}, k: 70 + i, person: 1, slot: 'in',
       stuck: 0, x: (5 + i) * T + 16, y: 8 * T + 16, dir: 0, frame: 0, at: 0, spr: sheet({ ...palOf(s.look), bust: s.g === 'f' && a >= 18 }),
       says: [TRAIT_SAYS[s.trait], 'มาเล่นด้วยกันไหม?', 'บ้านเราสนุกดีนะ'], get age() { return sibAge(s); } };
+    if (a < 6) { p._sched = [[0, 'in']]; p._schedRole = 'student'; }   // toddlers stay home all day
     p.h = { id: s.id, n: s.n, p, label: sibLabel(s), spr: p.spr, x: p.x, y: p.y, dir: 0, frame: 0, at: 0, vx: 0, vy: 0, t: 0, get age() { return p.age; } };
     const r = relOf(s.id); if (!r.f) r.f = 75;
     fam.push(p); people.push(p);
