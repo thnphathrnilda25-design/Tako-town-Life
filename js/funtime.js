@@ -49,6 +49,9 @@ const INVITES = [
   { id: 'beach', ic: '🏖️', n: 'ทริปทะเลหนึ่งวัน', where: 'town', hours: [7, 12], cost: 650, anim: 'walk', fxk: 'star', dur: 2.5, mins: 300, days: 7,
     fx: { mood: 46, energy: -25, food: 15 }, rel: 10, skill: ['charm', 16],
     reply: 'วันเดียวก็คุ้มแล้ว… ทรายติดเท้าแต่ยิ้มไม่หยุดเลย' },
+  { id: 'candle', ic: '🕯️', n: 'ดินเนอร์ใต้แสงเทียน', where: 'home', hours: [18, 23], cost: 200, anim: 'sit', fxk: 'love', dur: 2.1, mins: 90, love: 1,
+    fx: { mood: 32, food: 40, energy: -3 }, rel: 8, skill: ['cook', 6],
+    reply: 'แสงเทียนนิดเดียว แต่ใจฉันสว่างไปทั้งดวงเลย' },
   // ---- family moments ----
   { id: 'dinner', ic: '🍲', n: 'กินข้าวเย็นพร้อมหน้า', where: 'home', hours: [17, 21], cost: 0, anim: 'sit', fxk: 'spark', dur: 1.9, mins: 60, fam: 1,
     fx: { mood: 22, food: 35 }, rel: 5, reply: 'กับข้าววันนี้ฝีมือใครน่ะ? อร่อยจนต้องตักเพิ่ม' },
