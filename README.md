@@ -63,6 +63,7 @@ Then open `http://localhost:8765/pixel-town-32.html`.
 | `js/stories.js` | Phase 5 "ชุดเชื่อมเมือง": three connected four-chapter life stories (the old café, the furniture family, the carpenter's secret) sharing one backstory, one chapter per in-game day with a one-day grace window, a `📖 เรื่องราว` phone app, ending-specific rewards, three world flags, story phone messages, and two enterable interiors (ร้านกาแฟเก่า, โรงไม้) on the `nRoom` scene. |
 | `js/funtime.js` | 15 inviteable activities for a partner, spouse, parent, child or close friend (picnic, movie night, stargazing, night market, beach trip, family dinner…), each with a two-person animation, place/time/price rules, a daily cooldown, relationship/mood rewards, a keepsake photo in the phone album, and a 🖼️ memory log with daily and streak bonuses. |
 | `js/timeskip.js` | Sleep through whole years from the bed: 🌌 นอนข้ามเวลา offers 1/2/3/5/10 years, simulates every birthday inside the skip (aging, parent deaths, town news, inflation, job wages), auto-resolves missed story chapters, and reports everything in one 🌅 summary panel. Sleeping is free. Old saves get `st.ts` lazily. |
+| `js/swap.js` | Family switching: the `👪 ครอบครัว` phone app plays any household member (parents, spouse, kids of any age) back and forth for free, leaves the body you left behind as an NPC living at home, keeps one shared household purse while skills/inventory/outfit/job stay per person, warps you home from anywhere, and pays the family members you are not playing at 18:00. Old saves get `st.famSw` and `st.ageShift0` lazily. |
 | `js/system.js` | Title screen with save slots, pause menu, settings. Any Escape that closes a conversation is swallowed so the pause menu cannot open on top of it. |
 
 ## Load order (important)
@@ -74,7 +75,7 @@ people, game, mapart, wearart, life, seasons, school, shops, pets, wardrobe, fas
 minis, anim, love, phone, walk, dialog, events, audio, collect, biz, quests, adventure,
 mayor, talkbox, goals, wallet, lively, homes, family, collections, career, tech, income,
 housing, social, memory, realism, townlife, npclife, npcdeep, npcmove, nightlife, tutorial, lighting,
-status, safety, dating, stories, funtime, timeskip, system
+status, safety, dating, stories, funtime, timeskip, swap, system
 ```
 
 Modules are plain scripts that share one global scope. A later module can replace or wrap an earlier one's functions (for example `talk`, `say`, `updatePerson`, `personOpts`, `seasonTick`, `lifeTick`, `drawEnt`, `update`). Changing the order will break things. Add new modules before `system.js`, and register them in the array at the bottom of the HTML.
@@ -156,7 +157,7 @@ keepsake photo lands in the camera album. Three activities in one day (🌟) and
 (🔥) give a small mood bonus. All state is created lazily, so old saves load unchanged, and nothing
 here is required for the story or the money balance.
 
-Load order now ends with: `… career, tech, income, housing, social, memory, realism, townlife, npclife, npcdeep, npcmove, nightlife, tutorial, lighting, status, safety, dating, stories, funtime, timeskip, system`. Backups of the files before the sprite update: `js.backup-before-sprites/`.
+Load order now ends with: `… career, tech, income, housing, social, memory, realism, townlife, npclife, npcdeep, npcmove, nightlife, tutorial, lighting, status, safety, dating, stories, funtime, timeskip, swap, system`. Backups of the files before the sprite update: `js.backup-before-sprites/`.
 
 ## Sleeping through years (`js/timeskip.js`)
 
@@ -182,6 +183,26 @@ line); the same summary can be reopened from the bed. State lives in `st.ts` (`n
 `sum`) and the 🌌 หลับข้ามปี achievement unlocks at five skipped years. Toasts raised during the
 simulation are collected instead of spamming the screen, and the random daily event is suppressed on
 the first morning so the summary is not buried under a pop-up.
+
+## Family switching, warp and family income (`js/swap.js`)
+
+เปิด **👪 ครอบครัว** ในมือถือเพื่อสลับชีวิตเป็นคนในบ้านคนไหนก็ได้ — พ่อ แม่ คู่สมรส และลูกทุกวัย
+รวมเด็ก — สลับไป-กลับได้ไม่จำกัดและฟรี ไม่มีคูลดาวน์หรือค่าใช้จ่าย ตัวที่คุณทิ้งไว้จะยังอยู่ที่บ้าน
+ในร่าง NPC ที่เดินไปมาและใช้ชีวิตต่อ และเดินไปคุยหรือกด “🔄 สลับกลับมาเป็นตัวเอง” ได้ตลอด
+
+- **กระเป๋าเดียวทั้งบ้าน**: เงิน, บ้าน, เฟอร์นิเจอร์, ความสัมพันธ์, มือถือ, ความสำเร็จ และชนชั้น
+  เป็นของส่วนกลาง สกิล, ของในกระเป๋า, ชุด/ทรงผม, อาชีพ, พลังงาน, ความหิว, อารมณ์, การเรียน
+  และสุขภาพ แยกตามคน (ตาราง `SW_FIELDS` ใน `js/swap.js`) เก็บไว้ใน `st.famSw.rec[id]`
+- **อายุต่อคน**: `st.ageShift0` จำอายุของชีวิตหลักไว้ ทำให้ `parentAge()` ไม่เปลี่ยนตามร่างที่เล่นอยู่
+  และแต่ละคนยังแก่อายุตามปฏิทินเหมือนเดิม
+- **🏠 วาปกลับบ้าน (ฟรี)**: ปุ่มในแอป ใช้ได้จากทุกที่ (ในเมือง บ้านพ่อแม่ ฯลฯ) ไม่มีค่าใช้จ่าย
+- **รายได้ครอบครัว**: พ่อ ฿165/วัน, แม่ ฿120/วัน (คูณ `st.infl`), ลูก ฿100/วันเมื่อ 18+,
+  ฿55/วันเมื่อ 16–17, ต่ำกว่า 16 ไม่มีรายได้ และคู่สมรสใช้เงินเดือนเดิมใน `family.js`
+  จ่ายตอน 18:00 วันละครั้งต่อคน ข้ามคนที่คุณกำลังเล่นอยู่ และข้ามคู่สมรสเพื่อไม่ให้ได้เงินซ้ำ
+  (ถ้าเล่นเป็นคู่สมรสเอง เงินเดือน NPC จะหยุดและคุณต้องเข้าผลัดเอง) สรุปในแอปและ toast
+- **ความปลอดภัย**: ถ้าคนที่คุณเล่นอยู่หายไปจากบ้าน (เสียชีวิต/ย้ายออก/เซฟถูกแก้) `swGuard()` จะพา
+  กลับมาเป็นตัวเองให้อัตโนมัติ และ `passTorch` จะไม่ทำงานจนกว่าจะกลับมาเป็นตัวเองก่อน
+  เซฟเก่าไม่มี `st.famSw`/`st.ageShift0` ก็เล่นต่อได้ทันที (สร้างให้เองตอนเริ่ม)
 
 ## Map redesign (`js/mapart.js`, loaded right after `game.js`)
 

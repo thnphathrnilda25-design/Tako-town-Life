@@ -34,7 +34,7 @@ function makeParents(look) {
   return { dad: { n: PARENT_NAMES[0], g: 'm', age0: 30 + ri(8), look: dad, trait: dt }, mom: { n: PARENT_NAMES[1], g: 'f', age0: 28 + ri(8), look: mom, trait: mt },
     from, trait: tFromDad ? dt : mt, traitFrom: tFromDad ? 'พ่อ' : 'แม่' };
 }
-const parentAge = p => p.age0 + age() - 6;
+const parentAge = p => p.age0 + Math.floor((day() - 1) / YEAR) + (st.ageShift0 ?? st.ageShift ?? 0);   // fixed to the household, not the body you are playing
 
 function lifeTick() {
   if (age() <= st.lastAge) return;
