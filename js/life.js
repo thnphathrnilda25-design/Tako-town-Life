@@ -26,6 +26,11 @@ const randomLook = g => {
   return { g, style: STYLES[g][ri(STYLES[g].length)], hx: '', hair: ri(HAIR.length), skin: ri(SKINS.length), eye: ri(EYES.length), shirt: ri(SHIRT.length), topS: CREATOR_TOPS[ri(CREATOR_TOPS.length)][0], botS: bot, shoeS: CREATOR_SHOES[ri(CREATOR_SHOES.length)][0], skirt: g === 'f' && bot === 'longskirt' };
 };
 
+// Gender wording used by the HUD, phone apps and profiles.
+const sexWord = g => g === 'f' ? 'หญิง' : 'ชาย';
+const sexFull = g => g === 'f' ? 'ผู้หญิง' : 'ผู้ชาย';
+const sexIcon = g => g === 'f' ? '♀' : '♂';
+
 // Each inherited gene (hair colour, skin, eyes, personality) comes from one parent, so the child always resembles a parent.
 function makeParents(look) {
   const dad = randomLook('m'), mom = randomLook('f'), dt = TRAITS[ri(TRAITS.length)], mt = TRAITS[ri(TRAITS.length)], from = {};

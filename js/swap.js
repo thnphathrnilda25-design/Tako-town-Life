@@ -18,16 +18,17 @@ function swMembers() {
   const S = swState(), out = [];
   const meJob = S.cur === 'me' ? st.job : (S.rec.me && S.rec.me.job);
   out.push({ id: 'me', icon: '🧑', n: S.cur === 'me' ? st.name : ((S.rec.me && S.rec.me.name) || st.name),
+    g: (S.cur === 'me' ? st.look?.g : (S.rec.me && S.rec.me.look && S.rec.me.look.g)) || 'm',
     age: S.cur === 'me' ? age() : swAge(S.rec.me ? S.rec.me.ageShift : 0), role: 'ชีวิตหลัก', job: meJob || null });
   const P = st.parents;
-  if (P && P.dad && !P.dad.dead) out.push({ id: 'dad', icon: '👨', n: P.dad.n, age: parentAge(P.dad), role: 'พ่อ · ทำงานที่ออฟฟิศ' });
-  if (P && P.mom && !P.mom.dead) out.push({ id: 'mom', icon: '👩', n: P.mom.n, age: parentAge(P.mom), role: 'แม่ · ทำงานที่คาเฟ่' });
+  if (P && P.dad && !P.dad.dead) out.push({ id: 'dad', icon: '👨', n: P.dad.n, g: 'm', age: parentAge(P.dad), role: 'พ่อ · ทำงานที่ออฟฟิศ' });
+  if (P && P.mom && !P.mom.dead) out.push({ id: 'mom', icon: '👩', n: P.mom.n, g: 'f', age: parentAge(P.mom), role: 'แม่ · ทำงานที่คาเฟ่' });
   const sp = typeof spouseP === 'function' ? spouseP() : null;
-  if (sp) out.push({ id: 'spouse', icon: '💍', n: sp.n, age: sp.age, role: 'คู่สมรส' });
+  if (sp) out.push({ id: 'spouse', icon: '💍', n: sp.n, g: sp.g, age: sp.age, role: 'คู่สมรส' });
   (st.kids || []).forEach((k, i) => {
     if (!k.n) return;
     const a = kidAge(k);
-    out.push({ id: 'kid' + i, icon: k.g === 'f' ? '👧' : '👦', n: k.n, age: a, kid: k,
+    out.push({ id: 'kid' + i, icon: k.g === 'f' ? '👧' : '👦', n: k.n, g: k.g, age: a, kid: k,
       role: `${k.g === 'f' ? 'ลูกสาว' : 'ลูกชาย'} · ${a < 6 ? 'ยังเล็ก' : a < 18 ? 'นักเรียน' : 'วัยทำงาน'}` });
   });
   return out;
@@ -77,7 +78,7 @@ function swMeEnt() {
     const look = r.look || st.look;
     const p = { id: 'me', n: r.name, g: (look && look.g) || 'm', fam: 1, trait: (st.parents && st.parents.trait) || 'kind', look };
     meEntCache = {
-      id: 'me', n: r.name, p, label: 'ตัวคุณเอง', spr: sheet(palOf(look)),
+      id: 'me', n: r.name, p, label: `ตัวคุณเอง · ${sexFull(p.g)}`, spr: sheet(palOf(look)),
       x: 3 * T + 16, y: 5 * T + 16, dir: 0, frame: 0, at: 0, vx: 0, vy: 0, t: 0,
       get age() { return swAge((r.ageShift | 0)); },
     };
@@ -127,8 +128,8 @@ function swSwitch(id) {
   if (typeof kidEnt !== 'undefined') kidEnt.cache = {};
   closeMenu(); closePanel();
   dressPlayer(); drawHud();
-  toast(`🔄 ตอนนี้คุณคือ ${m.n} (อายุ ${age()} ปี)`);
-  say(`สลับชีวิตเป็น ${m.n} แล้ว — เปิด 👪 ครอบครัว ในมือถือเพื่อสลับกลับ`);
+  toast(`🔄 ตอนนี้คุณคือ ${m.n} (${sexFull(m.g)} · ${age()} ปี)`);
+  say(`สลับชีวิตเป็น ${m.n} (${sexFull(m.g)}) แล้ว — เปิด 👪 ครอบครัว ในมือถือเพื่อสลับกลับ`);
   save();
   if (wasPanel && typeof phonePanel === 'function') { phonePanel(); pApp = 'fam'; refreshPanel(); }
 }
@@ -183,18 +184,25 @@ function swGuard() {
 }
 
 // ---- phone app ----
+const swMemberLook = (S, m) => {
+  if (m.id === 'me') return (S.cur === 'me' ? st.look : (S.rec.me && S.rec.me.look)) || st.look;
+  return swLookOf(m.id) || st.look;
+};
+const swMemberIcon = (S, m) => { try { return thumb(sheet(palOf(swMemberLook(S, m)))); } catch (e) { return m.icon; } };
 function famApp() {
-  const S = swState(), out = [];
-  out.push(el('div', { className: 'sub' }, `ตอนนี้คุณคือ ${st.name} · อายุ ${age()} ปี · เงินบ้าน ฿${st.money}`));
+  const S = swState(), out = [], mem = swMembers();
+  const home = homeFamily().map(e => e.n).filter(Boolean);
+  out.push(el('div', { className: 'sub' }, `ตอนนี้คุณคือ ${st.name} · ${sexFull(st.look?.g)} · อายุ ${age()} ปี · เงินบ้าน ฿${st.money}`));
+  out.push(el('div', { className: 'sub' }, `🏠 อยู่บ้านตอนนี้: ${home.length ? home.join(', ') : 'ไม่มีใครอยู่'} · สมาชิก ${mem.length} คน`));
   out.push(el('div', { style: 'display:flex;gap:6px;flex-wrap:wrap' },
     btn('🏠 วาปกลับบ้าน (ฟรี)', warpHome),
     ...(S.cur !== 'me' ? [btn('🔄 กลับมาเป็นตัวเอง', () => swSwitch('me'))] : [])));
   out.push(el('div', { className: 'sec' }, '👪 สลับชีวิต'));
-  for (const m of swMembers()) {
+  for (const m of mem) {
     const on = m.id === S.cur, w = swWage(m);
     const job = m.id === 'me' && m.job ? ` · ${JOBS[m.job.id] ? JOBS[m.job.id].titles[(m.job.lv | 0)] : 'งาน'}` : '';
     const sub = `${m.role}${w ? ` · ฿${w}/วัน` : job}${on ? ' · กำลังเล่นอยู่' : ''}`;
-    out.push(row(m.icon, `${m.n} (${m.age} ปี)`, sub, btn(on ? 'กำลังเล่น' : 'สลับเป็น', () => swSwitch(m.id), on)));
+    out.push(row(swMemberIcon(S, m), `${m.n} · ${sexIcon(m.g)} ${sexFull(m.g)} · ${m.age} ปี`, sub, btn(on ? 'กำลังเล่น' : 'สลับเป็น', () => swSwitch(m.id), on)));
   }
   out.push(el('div', { className: 'sec' }, '💼 รายได้ครอบครัว'));
   out.push(el('div', { className: 'sub' }, S.last

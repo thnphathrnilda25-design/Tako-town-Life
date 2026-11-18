@@ -976,13 +976,13 @@ const bar = (icon, label, v, c) => `<div class="row"><span>${icon} ${label}</spa
 function drawHud() {
   const h = hour(), hh = String(Math.floor(h)).padStart(2, '0'), mm = String(Math.floor(st.min % 60)).padStart(2, '0');
   const job = (st.job ? `${JOBS[st.job.id].titles[st.job.lv]}` : 'ว่างงาน') + (st.sick ? ' 🤒' : '');
-  const details = `<div class="top"><span>${st.name} · ${age()} ปี</span><span>${WEEK[weekday()]} ${day()} ${seasonTag()}</span></div><div class="row"><span></span><span>${hh}:${mm} ${isNight() ? '🌙' : '☀️'}</span></div>
+  const details = `<div class="top"><span>${st.name} · ${sexFull(st.look?.g)} · ${age()} ปี</span><span>${WEEK[weekday()]} ${day()} ${seasonTag()}</span></div><div class="row"><span></span><span>${hh}:${mm} ${isNight() ? '🌙' : '☀️'}</span></div>
     <div class="row"><span>📍 ${scene.name}</span><span style="color:${COL.money}">฿${st.money}${age() < 18 && st.famMoney ? ' 👪' : ''}</span></div>
     <div class="row"><span>💼 ${job}</span>${scene === home ? `<span>🏡 ${comfort}</span>` : (typeof nRoom !== 'undefined' && scene === nRoom && typeof visit !== 'undefined' && visit) ? `<span>🏠 ${visit.name}</span>` : ''}</div>` +
     bar('⚡', 'พลังงาน', st.energy, COL.energy) + bar('🍙', 'ความอิ่ม', st.food, COL.food) +
     bar('💗', 'ความสุข', st.mood, COL.mood) +
     (typeof dayGoalsMarkup === 'function' ? dayGoalsMarkup() : '');
-  hud.innerHTML = `<button class="fold" onclick="toggleHud()" aria-expanded="${hudExpanded}" title="${hudExpanded ? 'ย่อแผงสถานะ' : 'ขยายแผงสถานะ'}"><span>👤 ${st.name} · ${age()} ปี　${WEEK[weekday()]} ${day()}</span><span>${hh}:${mm} · ฿${st.money} ${hudExpanded ? '▴' : '▾'}</span></button>${hudExpanded ? `<div class="details">${details}</div>` : ''}`;
+  hud.innerHTML = `<button class="fold" onclick="toggleHud()" aria-expanded="${hudExpanded}" title="${hudExpanded ? 'ย่อแผงสถานะ' : 'ขยายแผงสถานะ'}"><span>👤 ${st.name} ${sexIcon(st.look?.g)} · ${age()} ปี　${WEEK[weekday()]} ${day()}</span><span>${hh}:${mm} · ฿${st.money} ${hudExpanded ? '▴' : '▾'}</span></button>${hudExpanded ? `<div class="details">${details}</div>` : ''}`;
 }
 function openMenu(name, opts) {
   closePanel();
@@ -1091,7 +1091,7 @@ function journal(tab = jTab) {
       const r = relOf(p.id), hearts = '❤️'.repeat(Math.floor(r.f / 20)) + '🤍'.repeat(5 - Math.floor(r.f / 20));
       const known = k => p[k].map(id => r.known.includes(id) ? ITEMS[id].ic : '❓').join(' ');
       const role = ROLE_NAME[p.role] ? ROLE_NAME[p.role] + ' · ' : '';
-      return row(romanceable(p) ? '💗' : '🙂', `${p.n} — ${relName(p.id, r.f)}`, `${role}${hearts} ${Math.floor(r.f)}/100 · ชอบมาก ${known('love')} · ชอบ ${known('like')} · ไม่ชอบ ${known('hate')}`);
+      return row(romanceable(p) ? '💗' : '🙂', `${p.n} — ${relName(p.id, r.f)}`, `${role}${sexWord(p.g)} · ${hearts} ${Math.floor(r.f)}/100 · ชอบมาก ${known('love')} · ชอบ ${known('like')} · ไม่ชอบ ${known('hate')}`);
     }).concat(el('div', { className: 'sub' }, 'คุย 1–2 ครั้งก็ชวนเดตได้ · สารภาพรักได้ที่ความสนิท 20 · ผู้ใหญ่ทุกคนจีบได้'));
     if (jTab === 'ach') body = [el('div', { className: 'sub' }, `ปลดล็อก ${Object.keys(st.ach).length}/${ACH.length}`),
       ...ACH.map(([id, n, d]) => row(st.ach[id] ? '🏆' : '🔒', n, st.ach[id] ? `สำเร็จวันที่ ${st.ach[id]}` : d || 'ยังไม่ปลดล็อก'))];

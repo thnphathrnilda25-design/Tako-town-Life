@@ -171,8 +171,8 @@ APP.rel = () => {
   const out = _relAppFam();
   if (typeof pRel !== 'undefined' && pRel) return out;
   const sp = spouseP(), kids = famKids(), extra = [];
-  if (sp) extra.push(row('💕', `คู่สมรส: ${sp.n}`, `${sp.age} ปี · ความสนิท ${Math.floor(relOf(sp.id).f)}/100 · อยู่บ้านเดียวกับคุณ`));
-  for (const k of kids) extra.push(row('🧒', `${k.n} (ลูก)`, `อายุ ${kidAge(k)} ปี · ความผูกพัน ${Math.floor(k.bond || 0)}/100${k.trait ? ` · ${TRAIT_TH[k.trait] || k.trait}` : ''}`));
+  if (sp) extra.push(row('💕', `คู่สมรส: ${sp.n}`, `${sexFull(sp.g)} · ${sp.age} ปี · ความสนิท ${Math.floor(relOf(sp.id).f)}/100 · อยู่บ้านเดียวกับคุณ`));
+  for (const k of kids) extra.push(row('🧒', `${k.n} (ลูก)`, `${sexFull(k.g)} · อายุ ${kidAge(k)} ปี · ความผูกพัน ${Math.floor(k.bond || 0)}/100${k.trait ? ` · ${TRAIT_TH[k.trait] || k.trait}` : ''}`));
   if (!extra.length) return out;
   return [out[0], el('div', { className: 'sec' }, 'ครอบครัวที่บ้าน'), ...extra, ...out.slice(1)];
 };

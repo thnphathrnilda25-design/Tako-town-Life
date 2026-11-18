@@ -170,7 +170,7 @@ function relProfileView(id) {
   const lead = p.fam ? null : homeLead(p.home), mateList = mates.length ? mates.slice(0, 4).map(q => q.n).join(', ') + (mates.length > 4 ? ` และอีก ${mates.length - 4} คน` : '') : '';
   const isContact = contacts().some(c => c.id === id);
   return [backRel,
-    row(relIcon(p), `${p.n}${p.id === st.partner ? ' 💕' : ''}`, `${p.age} ปี · ${p.fam ? 'ครอบครัว' : ROLE_NAME[p.role] || 'ชาวเมือง'} · ${TRAIT_TH[p.trait] || p.trait}`),
+    row(relIcon(p), `${p.n}${p.id === st.partner ? ' 💕' : ''}`, `${sexFull(p.g)} · ${p.age} ปี · ${p.fam ? 'ครอบครัว' : ROLE_NAME[p.role] || 'ชาวเมือง'} · ${TRAIT_TH[p.trait] || p.trait}`),
     el('div', { className: 'sub' }, `ความสนิท: ${relName(id, r.f)} (${Math.round(r.f || 0)}/100)`),
     row('🏠', relHome(p), p.fam ? 'คุณอยู่ด้วยกัน' : `สมาชิกในบ้าน ${homeResidents(p.home).length} คน`),
     lead && lead.id !== p.id ? row('⭐', 'หัวหน้าบ้าน', lead.n) : null,
@@ -200,7 +200,7 @@ APP.rel = () => {
       el('button', { className: pRelFilter === k ? 'on' : '', textContent: `${n} ${k === 'all' ? list.length : cnt[k] || 0}`, onclick: () => { pRelFilter = k; refreshPanel(); } }))),
     ...list.filter(p => pRelFilter === 'all' || relBucket(p.id) === pRelFilter).map(p => row(relIcon(p),
       `${p.n}${p.fam === 'spouse' ? ' 💕' : ''}`,
-      `${relName(p.id, relScore(p))} · ${p.fam ? 'ครอบครัว' : ROLE_NAME[p.role] || 'ชาวเมือง'} · ${relHome(p)}`,
+      `${relName(p.id, relScore(p))} · ${sexWord(p.g)} · ${p.fam ? 'ครอบครัว' : ROLE_NAME[p.role] || 'ชาวเมือง'} · ${relHome(p)}`,
       btn('ดู', () => { pRel = p.id; refreshPanel(); }))),
   ];
 };
