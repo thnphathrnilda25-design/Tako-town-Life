@@ -936,7 +936,7 @@ function checkAch() { for (const [id, n, , cond] of ACH) if (!st.ach[id] && cond
 // ================= scene switching / save =================
 const fadeEl = document.getElementById('fade');
 let busy = false;
-function fade(fn, hold = 320) { busy = true; keys.clear(); fadeEl.style.opacity = 1; setTimeout(() => { fn(); fadeEl.style.opacity = 0; busy = false; }, hold); }
+function fade(fn, hold = 320) { busy = true; keys.clear(); fadeEl.style.opacity = 1; setTimeout(() => { try { fn(); } finally { fadeEl.style.opacity = 0; busy = false; } }, hold); }
 function enter(sc, x, y, dir) { scene = sc; player.x = x; player.y = y; player.dir = dir; bDeco.hidden = sc !== home; save(); }
 const HOME_DOOR = BUILDINGS[0];
 function goHome() { fade(() => { const d = homeDoor(); enter(home, d.x, d.y - 8, 1); }); }
@@ -1259,6 +1259,9 @@ function findTarget() {
 // ================= loop =================
 let achT = 0, saveT = 0;
 function update(dt) {
+  // Self-heal: if a closed window left the "menu open" flag behind, the player would stop walking
+  // with nothing on screen. Anything still visible (talk box, window, activity) is left alone.
+  if (menuOpen && menuEl.hidden && !(typeof TK !== 'undefined' && TK) && !panelOpen) menuOpen = false;
   const paused = menuOpen || panelOpen || busy || mg || deco.on;
   if (mg) mgUpdate(dt);
   if (!paused) {

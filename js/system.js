@@ -26,11 +26,12 @@ var dm = () => ({ easy: .75, normal: 1, hard: 1.35 }[CFG.diff] || 1);      // di
 }
 
 // ---- pause menu + settings ----
-const overlayOpen = () => menuOpen || panelOpen || mg || busy || ACT || deco.on;
+const overlayOpen = () => menuOpen || panelOpen || mg || busy || ACT || deco.on || (typeof TK !== 'undefined' && !!TK);
 let escOK = false;
 addEventListener('keydown', e => { escOK = e.code === 'Escape' && !!player && !overlayOpen() && performance.now() - escSkip > 100; }, true);   // capture: state before the game's own Esc handling
 addEventListener('keydown', e => { if (escOK) { escOK = false; pauseMenu(); } });
 function pauseMenu() {
+  if (typeof TK !== 'undefined' && TK) return;   // never stack the pause menu over a conversation
   openMenu('⏸ เมนู', [['เล่นต่อ', () => 0], ['บันทึกเกม', () => { save(); say('บันทึกแล้ว 💾'); }], ['ตั้งค่า', settingsPanel],
     ['บันทึกแล้วกลับไปหน้าแรก', () => { save(); location.reload(); }]]);
 }

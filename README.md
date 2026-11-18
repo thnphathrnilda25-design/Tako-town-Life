@@ -61,7 +61,8 @@ Then open `http://localhost:8765/pixel-town-32.html`.
 | `js/safety.js` | Safety and quality of life: place/time-based safety index, night thief risk, uneasy moodlet, HUD safety row, daily safety news, CCTV project and patrol policy, and the `🏙️ เมือง` phone app with city stats, class mix, projects, policies and a safe walk home. |
 | `js/income.js` | Extra income: a daily three-job side board with an all-three bonus, three online freelance offers per day, a four-asset investment market with daily prices, and a daily check-in streak. Adds phone apps, a PC shortcut and a board in the plaza. |
 | `js/stories.js` | Phase 5 "ชุดเชื่อมเมือง": three connected four-chapter life stories (the old café, the furniture family, the carpenter's secret) sharing one backstory, one chapter per in-game day with a one-day grace window, a `📖 เรื่องราว` phone app, ending-specific rewards, three world flags, story phone messages, and two enterable interiors (ร้านกาแฟเก่า, โรงไม้) on the `nRoom` scene. |
-| `js/system.js` | Title screen with save slots, pause menu, settings. |
+| `js/funtime.js` | 15 inviteable activities for a partner, spouse, parent, child or close friend (picnic, movie night, stargazing, night market, beach trip, family dinner…), each with a two-person animation, place/time/price rules, a daily cooldown, relationship/mood rewards, a keepsake photo in the phone album, and a 🖼️ memory log with daily and streak bonuses. |
+| `js/system.js` | Title screen with save slots, pause menu, settings. Any Escape that closes a conversation is swallowed so the pause menu cannot open on top of it. |
 
 ## Load order (important)
 
@@ -72,7 +73,7 @@ people, game, mapart, wearart, life, seasons, school, shops, pets, wardrobe, fas
 minis, anim, love, phone, walk, dialog, events, audio, collect, biz, quests, adventure,
 mayor, talkbox, goals, wallet, lively, homes, family, collections, career, tech, income,
 housing, social, memory, realism, townlife, npclife, npcdeep, npcmove, nightlife, tutorial, lighting,
-status, safety, dating, stories, system
+status, safety, dating, stories, funtime, system
 ```
 
 Modules are plain scripts that share one global scope. A later module can replace or wrap an earlier one's functions (for example `talk`, `say`, `updatePerson`, `personOpts`, `seasonTick`, `lifeTick`, `drawEnt`, `update`). Changing the order will break things. Add new modules before `system.js`, and register them in the array at the bottom of the HTML.
@@ -133,7 +134,28 @@ Modules contain `console.assert` checks at load time (item tables, placement, in
 | `js/memory.js` | NPC memories, memory lines in dialogue, gossip through friends, NPC-to-NPC friendships/feuds, town reputation, aging, parents' and player's death, funerals, inheritance. |
 | `js/realism.js` | Stress, sleep debt, weight, injuries, food poisoning/colds, moodlets, loans + credit score, utility bills by usage, yearly inflation. Bladder/bathroom/shower hygiene systems were removed. |
 
-Load order now ends with: `… career, tech, income, housing, social, memory, realism, townlife, npclife, npcdeep, npcmove, nightlife, tutorial, lighting, status, safety, dating, stories, system`. Backups of the files before the sprite update: `js.backup-before-sprites/`.
+## Fun times with people you love (`js/funtime.js`)
+
+`personOpts` gains **🎈 ชวนทำกิจกรรมด้วยกัน** for a partner, spouse, live-in partner, any family
+member (parents and children) and any townsperson at 40+ friendship. It opens a menu of 15 small
+outings and cosy moments, each with its own place (home / outside / anywhere), time window, price,
+two-person `pairAct` animation, once-per-day cooldown (the beach trip is once a week) and rewards
+in mood, food, energy, a skill and relationship (children gain `bond` instead).
+
+| Kind | Examples |
+|---|---|
+| Outdoors | ปิกนิก, เดินตลาดกลางคืน, ปั่นจักรยาน, กินไอศกรีม, ทริปทะเล |
+| At home | ดูหนัง, ทำอาหารด้วยกัน, แช่น้ำอุ่น, ร้องคาราโอเกะ |
+| Anywhere | นั่งดูดาว, ถ่ายรูปคู่ |
+| Family | กินข้าวเย็นพร้อมหน้า, ช่วยกันทำงานบ้าน, นั่งคุยกันยาว ๆ, เล่านิทานก่อนนอน (children only) |
+
+Every moment is logged in `st.fun` (`log`, `total`, `day`, `count`, `streak`, `streakDay`, `last`)
+and **🖼️ อัลบั้มโมเมนต์** lists the last 24. A finished activity also calls the phone's `snap()` so a
+keepsake photo lands in the camera album. Three activities in one day (🌟) and three days in a row
+(🔥) give a small mood bonus. All state is created lazily, so old saves load unchanged, and nothing
+here is required for the story or the money balance.
+
+Load order now ends with: `… career, tech, income, housing, social, memory, realism, townlife, npclife, npcdeep, npcmove, nightlife, tutorial, lighting, status, safety, dating, stories, funtime, system`. Backups of the files before the sprite update: `js.backup-before-sprites/`.
 
 ## Map redesign (`js/mapart.js`, loaded right after `game.js`)
 

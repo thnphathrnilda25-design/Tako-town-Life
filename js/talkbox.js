@@ -68,7 +68,13 @@ setInterval(typeTick, 22);
 function begin(p) {
   if (TK) return; TK = { p, full: '', shown: 0, expr: 'neutral' }; p.talking = true; if (p.h) p.h.talking = true; menuOpen = true; keys.clear();
 }
-function closeTalk() { if (!TK) return; TK.p.talking = false; if (TK.p.h) TK.p.h.talking = false; TK = null; talkEl.hidden = true; choiceEl.hidden = true; menuOpen = false; }
+function closeTalk() {
+  escSkip = performance.now();                     // the Esc that closed the box must not also open the pause menu
+  if (TK) { TK.p.talking = false; if (TK.p.h) TK.p.h.talking = false; TK = null; }
+  talkEl.hidden = true; choiceEl.hidden = true;
+  if (!panelOpen) menuOpen = false;                // never leave the walk input locked after a conversation
+  keys.clear();
+}
 function line(text, expr, after) {
   if (!TK) return; const m = text.match(/^[^:]{1,20}:\s*"?(.*?)"?$/s); TK.full = (m ? m[1] : text).replace(/^"|"$/g, ''); TK.shown = 0; TK.expr = expr || TK.expr; TK.opts = null; TK.after = after || null; render2();
 }
@@ -97,11 +103,11 @@ talk = p => { if (!TK) begin(p); cont(p); };
 addEventListener('keydown', e => {   // capture: runs before the game's own key handling
   if (!TK) return; const k = keyOf(e);
   if (['e', ' ', 'enter'].includes(k)) { e.preventDefault(); e.stopImmediatePropagation(); if (!e.repeat) advance(); }
-  else if (k === 'escape') { e.stopImmediatePropagation(); escSkip = performance.now(); closeTalk(); }
+  else if (k === 'escape') { e.stopImmediatePropagation(); closeTalk(); }
   else if (/^[1-9]$/.test(k) && TK.opts) { e.stopImmediatePropagation(); if (+k <= TK.opts.length) pickOpt(+k - 1); }
 }, true);
 $('abtn').addEventListener('pointerdown', e => { if (TK) { e.preventDefault(); e.stopImmediatePropagation(); advance(); } }, true);
-const _closeMenu14 = closeMenu; closeMenu = () => { _closeMenu14(); if (TK) { TK.p.talking = false; TK = null; talkEl.hidden = true; choiceEl.hidden = true; } };
+const _closeMenu14 = closeMenu; closeMenu = () => { _closeMenu14(); if (TK) { TK.p.talking = false; if (TK.p.h) TK.p.h.talking = false; TK = null; talkEl.hidden = true; choiceEl.hidden = true; } escSkip = performance.now(); };
 const _up14 = updatePerson; updatePerson = (p, dt) => { if (p.talking) { animate(p, false, dt); if (player) p.dir = faceTo(p, player); return; } _up14(p, dt); };
 const _wander14 = wander; wander = (sc, n, sp, dt, ar) => { if (n.talking) { animate(n, false, dt); return; } _wander14(sc, n, sp, dt, ar); };
 // folks (ambient strangers) also stop and show a portrait when greeted
