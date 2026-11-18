@@ -55,7 +55,7 @@ const swGrab = () => { const o = {}; for (const k of SW_FIELDS) o[k] = swClone(s
 function swDefault(id, m) {
   return {
     name: m.n, look: swLookOf(id) || st.look, ageShift: swShiftFor(m.age), lastAge: m.age,
-    sk: swBlankSk(), inv: {}, wear: {}, outfit: 0, char: 0,
+    sk: swBlankSk(), inv: {}, wear: swBaseWear(id), wearSet: true, outfit: 0, char: 0,
     job: id === 'dad' ? { id: 'office', lv: 2, perf: 0, day: 0 } : id === 'mom' ? { id: 'barista', lv: 1, perf: 0, day: 0 } : null,
     energy: 85, food: 75, mood: 70, body: { stress: 15, kg: id.startsWith('kid') ? 30 : 62, awake: 0, injured: 0 },
     sick: null, payMod: null, school: null, grad: m.age >= 18 ? 1 : 0,
@@ -78,13 +78,63 @@ function swMeEnt() {
     const look = r.look || st.look;
     const p = { id: 'me', n: r.name, g: (look && look.g) || 'm', fam: 1, trait: (st.parents && st.parents.trait) || 'kind', look };
     meEntCache = {
-      id: 'me', n: r.name, p, label: `ตัวคุณเอง · ${sexFull(p.g)}`, spr: sheet(palOf(look)),
+      id: 'me', n: r.name, p, label: `ตัวคุณเอง · ${sexFull(p.g)}`,
+      spr: sheet(swPal(look, r.wearSet ? (r.wear || {}) : {}, r.outfit || 0, swAge((r.ageShift | 0)))),
       x: 3 * T + 16, y: 5 * T + 16, dir: 0, frame: 0, at: 0, vx: 0, vy: 0, t: 0,
       get age() { return swAge((r.ageShift | 0)); },
     };
   }
   return meEntCache;
 }
+
+// ---- appearance: a haircut or outfit you change while playing a body stays on that body ----
+const swAgeOf = id => {
+  if (id === 'me') { const S = swState(); return S.cur === 'me' ? age() : swAge((S.rec.me && S.rec.me.ageShift) | 0); }
+  if (id === 'dad' || id === 'mom') return st.parents && st.parents[id] ? parentAge(st.parents[id]) : 0;
+  if (id === 'spouse') { const p = spouseP(); return p ? p.age : 0; }
+  if (id.startsWith('kid')) { const k = (st.kids || [])[+id.slice(3)]; return k ? kidAge(k) : 0; }
+  return 0;
+};
+const swBaseWear = id => {          // the clothing an NPC already wears, so a repaint does not strip it
+  if (id === 'dad' || id === 'mom') { const f = fam.find(x => x.id === id); return f ? npcWear(f, fam.indexOf(f) + 11) : {}; }
+  if (id === 'spouse') { const p = spouseP(); return p ? npcWear(p, people.indexOf(p)) : {}; }
+  if (id.startsWith('kid')) { const i = +id.slice(3), k = (st.kids || [])[i]; return k ? npcWear({ id: 'kid' + i, g: k.g, age: kidAge(k) }, 300 + i) : {}; }
+  return {};
+};
+function swPal(look, wear, outfit, a, base) {
+  const keep = st.wear; st.wear = wear || {};
+  const pal = { ...palOf(look || st.look), ...(base || {}), ...(OUTFITS[outfit | 0] || {}), ...wearPal(), bust: (look || st.look).g === 'f' && a >= 18 };
+  st.wear = keep;
+  return pal;
+}
+const swEntOf = id => {
+  if (id === 'dad' || id === 'mom') return fam.find(x => x.id === id) || null;
+  if (id === 'spouse') { const p = spouseP(); return p && p.h ? p : null; }
+  if (id.startsWith('kid')) { const k = (st.kids || [])[+id.slice(3)]; return k && typeof kidEnt !== 'undefined' ? kidEnt(k) : null; }
+  return null;
+};
+function swSyncHouse(id) {          // keep the household record in step so portraits and new saves match
+  const r = swState().rec[id]; if (!r || !r.look) return;
+  const look = swClone(r.look);
+  if ((id === 'dad' || id === 'mom') && st.parents && st.parents[id]) st.parents[id].look = look;
+  else if (id === 'spouse') { const p = spouseP(); if (p) p.look = look; }
+  else if (id.startsWith('kid')) { const k = (st.kids || [])[+id.slice(3)]; if (k) k.look = look; }
+}
+function swRepaint(id) {
+  const r = swState().rec[id]; if (!r) return;
+  if (id === 'me') { meEntCache = null; return; }
+  const ent = swEntOf(id); if (!ent) return;
+  const wear = r.wearSet ? (r.wear || {}) : swBaseWear(id);
+  const spr = sheet(swPal(r.look || swLookOf(id), wear, r.outfit || 0, swAgeOf(id)));
+  ent.spr = spr;
+  if (ent.h) ent.h.spr = spr;
+}
+function swRepaintAll() {
+  const S = swState();
+  for (const id of Object.keys(S.rec || {})) if (id !== S.cur) swRepaint(id);
+}
+const _rebuildSw = rebuildHome;
+rebuildHome = () => { _rebuildSw(); swRepaintAll(); };
 
 const swEntIsActive = (e, cur) => {
   if (!e) return false;
@@ -117,13 +167,15 @@ function swSwitch(id) {
   if (S.cur === id) return say('คุณกำลังเล่นเป็นคนนี้อยู่');
   const m = swMembers().find(x => x.id === id);
   if (!m) return say('สลับเป็นคนนี้ไม่ได้');
-  const wasPanel = panelOpen;
+  const wasPanel = panelOpen, leaving = S.cur;
   S.rec[S.cur] = swGrab();
+  S.rec[S.cur].wearSet = true;
   if (!S.rec[id]) S.rec[id] = swDefault(id, m);
   swApply(S.rec[id]);
   // one household purse: when an adult body is active the parents' share must stay in the wallet
   if (age() >= 18 && (st.famMoney || 0) > 0) { const f = st.famMoney; st.famMoney = 0; st.money += f; }
   S.cur = id; S.swaps = (S.swaps || 0) + 1;
+  swSyncHouse(leaving); swRepaint(leaving);      // the body you leave keeps the haircut/outfit you gave it
   meEntCache = null;
   if (typeof kidEnt !== 'undefined') kidEnt.cache = {};
   closeMenu(); closePanel();
@@ -188,14 +240,25 @@ const swMemberLook = (S, m) => {
   if (m.id === 'me') return (S.cur === 'me' ? st.look : (S.rec.me && S.rec.me.look)) || st.look;
   return swLookOf(m.id) || st.look;
 };
-const swMemberIcon = (S, m) => { try { return thumb(sheet(palOf(swMemberLook(S, m)))); } catch (e) { return m.icon; } };
+const swMemberIcon = (S, m) => {
+  try {
+    const r = S.rec[m.id], on = m.id === S.cur;
+    const wear = on ? st.wear : (r && r.wearSet ? r.wear : swBaseWear(m.id));
+    const outfit = on ? st.outfit : (r && r.outfit);
+    return thumb(sheet(swPal(swMemberLook(S, m), wear, outfit, m.age)));
+  } catch (e) { return m.icon; }
+};
 function famApp() {
   const S = swState(), out = [], mem = swMembers();
-  const home = homeFamily().map(e => e.n).filter(Boolean);
+  const atHome = homeFamily().map(e => e.n).filter(Boolean);
   out.push(el('div', { className: 'sub' }, `ตอนนี้คุณคือ ${st.name} · ${sexFull(st.look?.g)} · อายุ ${age()} ปี · เงินบ้าน ฿${st.money}`));
-  out.push(el('div', { className: 'sub' }, `🏠 อยู่บ้านตอนนี้: ${home.length ? home.join(', ') : 'ไม่มีใครอยู่'} · สมาชิก ${mem.length} คน`));
+  out.push(el('div', { className: 'sub' }, `🏠 อยู่บ้านตอนนี้: ${atHome.length ? atHome.join(', ') : 'ไม่มีใครอยู่'} · สมาชิก ${mem.length} คน`));
   out.push(el('div', { style: 'display:flex;gap:6px;flex-wrap:wrap' },
     btn('🏠 วาปกลับบ้าน (ฟรี)', warpHome),
+    btn('👚 เปลี่ยนชุด/ทรงผม', () => {
+      if (scene !== home) return say('กลับบ้านก่อนแล้วเปิดตู้เสื้อผ้าได้เลย — วาปกลับบ้านฟรี');
+      closePanel(); wardrobePanel('closet');
+    }),
     ...(S.cur !== 'me' ? [btn('🔄 กลับมาเป็นตัวเอง', () => swSwitch('me'))] : [])));
   out.push(el('div', { className: 'sec' }, '👪 สลับชีวิต'));
   for (const m of mem) {
@@ -210,6 +273,7 @@ function famApp() {
     : 'ยังไม่มีรายได้ — คนที่คุณไม่ได้เล่นจะกลับบ้านตอน 18:00'));
   out.push(el('div', { className: 'sub' }, `รวมที่ครอบครัวหาได้ ฿${S.earned || 0} · เงินทุกคนเข้ากระเป๋าบ้านเดียวกัน`));
   out.push(el('div', { className: 'sub' }, 'สกิล กระเป๋าของ และชุดแยกกันตามคน — สลับแล้วได้ของใช้ของคนนั้น'));
+  out.push(el('div', { className: 'sub' }, '💇 ทรงผม ชุด และสีย้อมจะติดอยู่กับคนนั้น — สลับกลับมาหรือโหลดเซฟใหม่ก็ยังเหมือนเดิม'));
   if (S.cur !== 'me') out.push(el('div', { className: 'sub' }, 'ตัวละครเดิมของคุณรออยู่ที่บ้าน — เดินไปคุยหรือสลับกลับได้ตลอด'));
   return out;
 }
@@ -225,6 +289,7 @@ start = saved => {
   meEntCache = null;
   if (typeof kidEnt !== 'undefined') kidEnt.cache = {};
   swGuard();
+  swRepaintAll();
   dressPlayer(); if (typeof drawHud === 'function') drawHud();
 };
 const _torchSw = passTorch;

@@ -63,7 +63,7 @@ Then open `http://localhost:8765/pixel-town-32.html`.
 | `js/stories.js` | Phase 5 "ชุดเชื่อมเมือง": three connected four-chapter life stories (the old café, the furniture family, the carpenter's secret) sharing one backstory, one chapter per in-game day with a one-day grace window, a `📖 เรื่องราว` phone app, ending-specific rewards, three world flags, story phone messages, and two enterable interiors (ร้านกาแฟเก่า, โรงไม้) on the `nRoom` scene. |
 | `js/funtime.js` | 15 inviteable activities for a partner, spouse, parent, child or close friend (picnic, movie night, stargazing, night market, beach trip, family dinner…), each with a two-person animation, place/time/price rules, a daily cooldown, relationship/mood rewards, a keepsake photo in the phone album, and a 🖼️ memory log with daily and streak bonuses. |
 | `js/timeskip.js` | Sleep through whole years from the bed: 🌌 นอนข้ามเวลา offers 1/2/3/5/10 years, simulates every birthday inside the skip (aging, parent deaths, town news, inflation, job wages), auto-resolves missed story chapters, and reports everything in one 🌅 summary panel. Sleeping is free. Old saves get `st.ts` lazily. |
-| `js/swap.js` | Family switching: the `👪 ครอบครัว` phone app plays any household member (parents, spouse, kids of any age) back and forth for free, leaves the body you left behind as an NPC living at home, keeps one shared household purse while skills/inventory/outfit/job stay per person, warps you home from anywhere, and pays the family members you are not playing at 18:00. Old saves get `st.famSw` and `st.ageShift0` lazily. |
+| `js/swap.js` | Family switching: the `👪 ครอบครัว` phone app plays any household member (parents, spouse, kids of any age) back and forth for free, leaves the body you left behind as an NPC living at home, keeps one shared household purse while skills/inventory/outfit/job stay per person, warps you home from anywhere, and pays the family members you are not playing at 18:00. Haircuts, dyes and outfits you change while playing a body are written back to that body's record and NPC sprite. Old saves get `st.famSw` and `st.ageShift0` lazily. |
 | `js/system.js` | Title screen with save slots, pause menu, settings. Any Escape that closes a conversation is swallowed so the pause menu cannot open on top of it. |
 
 ## Load order (important)
@@ -198,6 +198,15 @@ the first morning so the summary is not buried under a pop-up.
   (`♂ ผู้ชาย` / `♀ ผู้หญิง`) — เพศของแต่ละร่างมาจาก `look.g` / `p.g` เดิมของเกม ไม่มีข้อมูลใหม่ที่ต้องย้ายเซฟ
 - **อายุต่อคน**: `st.ageShift0` จำอายุของชีวิตหลักไว้ ทำให้ `parentAge()` ไม่เปลี่ยนตามร่างที่เล่นอยู่
   และแต่ละคนยังแก่อายุตามปฏิทินเหมือนเดิม
+- **ตัดผม/แต่งตัวติดกับคนนั้น**: กด **👚 เปลี่ยนชุด/ทรงผม** ในแอป 👪 (ต้องอยู่บ้าน — ถ้าอยู่ที่อื่น
+  เกมจะบอกให้วาปกลับบ้านฟรีก่อน) แล้วแก้ทรงผม สีย้อม เสื้อผ้าได้ตามปกติ สิ่งที่เปลี่ยนจะถูกเขียน
+  กลับไปที่ `st.famSw.rec[id]` (`look`, `wear`, `outfit`) ตอนสลับร่าง และ `swSyncHouse(id)` อัปเดต
+  `st.parents.dad/mom.look`, `p.look`, `k.look` ให้ตรงกัน จากนั้น `swRepaint(id)` วาดสไปรต์ NPC
+  ใหม่ทันที (และ `swRepaintAll()` ทำซ้ำทุกครั้งที่ `start` หรือ `rebuildHome`)
+  - `rec[id].wearSet = true` หมายถึง “ชุดนี้ถูกกำหนดแล้ว” — ถ้าไม่มี marker นี้ (เซฟเก่า) เกมจะใช้
+    `swBaseWear(id)` (ชุดเดิมของ NPC) แทนการเปลื้องผ้า
+  - ถอดเสื้อ/หมวกออกแล้วสลับร่าง ช่องนั้นจะว่างจริง (ไม่กลับไปใส่ชุดเดิมให้เอง)
+  - รูปย่อในแอป 👪 และสไปรต์ร่างที่คุณทิ้งไว้ก็ใช้ชุด/ทรงผมชุดเดียวกัน
 - **🏠 วาปกลับบ้าน (ฟรี)**: ปุ่มในแอป ใช้ได้จากทุกที่ (ในเมือง บ้านพ่อแม่ ฯลฯ) ไม่มีค่าใช้จ่าย
 - **รายได้ครอบครัว**: พ่อ ฿165/วัน, แม่ ฿120/วัน (คูณ `st.infl`), ลูก ฿100/วันเมื่อ 18+,
   ฿55/วันเมื่อ 16–17, ต่ำกว่า 16 ไม่มีรายได้ และคู่สมรสใช้เงินเดือนเดิมใน `family.js`
