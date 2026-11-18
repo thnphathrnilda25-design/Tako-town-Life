@@ -1,10 +1,10 @@
 'use strict';
 // Sleeping through time: the bed gains "🌌 นอนข้ามเวลา" so you can sleep for whole years, not just
 // hours. The skip is simulated one birthday at a time, so aging, parents, town news, money, inflation
-// and story deadlines all keep moving while you sleep. One summary panel reports what changed.
+// and story deadlines all keep moving while you sleep. Sleeping is free and your current job keeps
+// paying for every working day you slept through. One summary panel reports what changed.
 
 const TS_SPANS = [1, 2, 3, 5, 10];
-const TS_LIVE = 6;                        // living cost per skipped day, paid by grown-ups
 const TS_DREAMS = [
   'ฝันว่าปีนบันไดที่ไม่มีวันสิ้นสุด แล้วเจอประตูบานหนึ่งที่เปิดออกสู่ทะเล',
   'ฝันว่ากลับไปเป็นเด็กอีกครั้ง นั่งกินข้าวกับพ่อแม่ในครัวหลังเก่า',
@@ -15,20 +15,52 @@ const TS_DREAMS = [
   'ฝันถึงกลิ่นกาแฟกับเสียงหัวเราะของคนที่ยังไม่เจอ',
   'ฝันว่าตัวเองแก่ลงทีละนิด แต่ใจยังเบาเหมือนเดิม',
 ];
-let TS_RUN = false, TS_DEAD = false, TS_NOTES = [], TS_TOAST = null, TS_AFTER = null;
+let TS_RUN = false, TS_DEAD = false, TS_NOTES = [], TS_TOAST = null, TS_AFTER = null, TS_EARN = 0, TS_WORK = 0;
 
 const tsState = () => (st.ts || (st.ts = { ver: 1, n: 0, years: 0, last: 0, sum: null }));
 const tsBday = (d, n) => (Math.floor((d - 1) / YEAR) + n) * YEAR + 1;   // day number of the n-th birthday after d
-const tsRent = () => {
-  const h = H();
-  return h.kind === 'own' ? (h.weeksLeft > 0 ? (h.weekly || 0) : 0) : h.kind === 'parents' ? 0 : (h.rent || 0);
-};
-const tsCost = days => {
-  const from = day(), end = from + days;
-  const d18 = Math.max(1, (12 - (st.ageShift || 0)) * YEAR + 1);   // the day you turn 18
-  const adult = Math.max(0, end - Math.max(from, d18));            // grown-up days only: parents pay before that
-  return adult ? Math.round(adult * TS_LIVE + Math.ceil(adult / 7) * tsRent()) : 0;
-};
+
+// ---- money while asleep: the skip is free and your job pays for the days you slept through ----
+const tsJob = () => (st.job && JOBS[st.job.id]) || null;
+function tsWage() {
+  const J = tsJob(); if (!J) return 0;
+  const L = Math.max(0, Math.min(J.pay.length - 1, st.job.lv | 0));
+  return Math.max(0, Math.round(J.pay[L] * payMul()
+    * (typeof clsPayMul === 'function' ? clsPayMul() : 1)
+    * (typeof civicJobPayMult === 'function' ? civicJobPayMult() : 1)));
+}
+function tsWorkDays(from, end) {           // day numbers in [from, end); office jobs rest on weekends
+  const J = tsJob(); if (!J) return 0;
+  let n = 0;
+  for (let d = from; d < end; d++) if (!J.weekdays || (d - 1) % 7 < 5) n++;
+  return n;
+}
+const tsEstimate = years => { const w = tsWage(), n = tsWorkDays(day(), day() + years * YEAR); return { w, n, pay: n * w }; };
+function tsIncome(from, end) {
+  const w = tsWage(); if (!w) return 0;
+  const n = tsWorkDays(from, end); if (!n) return 0;
+  const pay = n * w;
+  st.money += pay; TS_EARN += pay; TS_WORK += n;
+  return pay;
+}
+// Yearly 3% inflation is normally applied by dailyMoney(); the skip never runs that bill-paying tick,
+// so lift prices and wages here instead.
+function tsInflate() {
+  const y = Math.floor((day() - 1) / YEAR);
+  if ((st.inflY ?? 0) >= y) return;
+  st.inflY = y; st.infl = (st.infl || 1) * 1.03;
+  for (const id in ITEMS) { const I = ITEMS[id]; if (I.p) { I.p0 = I.p0 || I.p; I.p = Math.round(I.p0 * st.infl); } }
+  for (const J of Object.values(JOBS)) { J.pay0 = J.pay0 || [...J.pay]; J.pay = J.pay0.map(v => Math.round(v * st.infl)); }
+  if (st.house?.rent) st.house.rent = Math.round(st.house.rent * 1.03);
+  toast(`📈 ปีใหม่ ราคาของขึ้น 3% (เงินเฟ้อสะสม ${Math.round((st.infl - 1) * 100)}%) · ค่าจ้างก็ขึ้นตาม`);
+}
+// A night of sleep costs nothing: mark today's daily ticks as done so rent, bills, upkeep and loan
+// payments cannot fire on the wake-up morning (the skipped days never ran a daily tick at all).
+function tsNoBills() {
+  st.mDay = day();
+  const h = H(); if (h) h.paidDay = day();
+  if (typeof clsState === 'function') clsState().d = day();
+}
 
 // Waking up rested, but the body still has the limits of its age.
 function tsNeeds() {
@@ -50,27 +82,28 @@ function timeSkipMenu() {
     const left = Math.max(0, st.preg.due - day());
     return say(left ? `🤰 อีก ${left} วันจะคลอด — พักรอคลอดก่อนนะ` : '🤰 ใกล้คลอดแล้ว — คลอดก่อนแล้วค่อยนอนยาว');
   }
-  const S = tsState();
-  openMenu(`🌌 นอนข้ามเวลา — อายุ ${age()} ปี`, [
+  const S = tsState(), A = age(), job = tsJob();
+  openMenu(`🌌 นอนข้ามเวลา — อายุ ${A} ปี`, [
     ...TS_SPANS.map(n => {
-      const days = n * YEAR, cost = tsCost(days), poor = cost > st.money;
-      return [`${n} ปี → อายุ ${age() + n} ปี · ${days} วัน · ${cost ? `฿${cost}` : 'พ่อแม่เลี้ยงดู'}${poor ? ' — เงินไม่พอ' : ''}`,
-        () => (poor ? say(`ต้องมีเงินอย่างน้อย ฿${cost} สำหรับค่าครองชีพ ${days} วัน`) : tsConfirm(n, cost))];
+      const E = tsEstimate(n);
+      const pay = E.pay ? `~+฿${E.pay} (ทำงาน ${E.n} วัน)` : job ? 'ไม่มีวันทำงาน' : 'ไม่มีงาน = ไม่มีรายได้';
+      return [`${n} ปี → อายุ ${A + n} ปี · ${pay}`, () => tsConfirm(n)];
     }),
     ...(S.sum ? [['📜 สรุปการนอนครั้งล่าสุด', tsSummaryPanel]] : []),
     ['◀ กลับ', () => 0],
   ]);
 }
 
-function tsConfirm(years, cost) {
-  const a = age(), days = years * YEAR, risky = a + years >= 65;
-  openMenu(`😴 หลับ ${years} ปี (${days} วัน) · ฿${cost}${risky ? ' · ⚠️ อายุมากแล้ว' : ''}`, [
-    [`ใช่ — ตื่นมาอายุ ${a + years} ปี`, () => tsSleep(years, cost)],
+function tsConfirm(years) {
+  const a = age(), days = years * YEAR, E = tsEstimate(years), risky = a + years >= 65;
+  const money = E.pay ? ` · ~+฿${E.pay} จากงาน` : ' · ไม่มีรายได้';
+  openMenu(`😴 หลับ ${years} ปี (${days} วัน)${money}${risky ? ' · ⚠️ อายุมากแล้ว' : ''}`, [
+    [`ใช่ — ตื่นมาอายุ ${a + years} ปี`, () => tsSleep(years)],
     ['ไม่เอา', () => 0],
   ]);
 }
 
-function tsSleep(years, cost) {
+function tsSleep(years) {
   if (TS_RUN || busy) return say('รอสักครู่นะ');
   const S = tsState();
   const snap = {
@@ -79,25 +112,27 @@ function tsSleep(years, cost) {
     miss0: ST_ARCS.reduce((n, a) => n + (stA(a.id).missed || 0), 0),
     kids0: (st.kids || []).length,
   };
-  TS_RUN = true; TS_DEAD = false; TS_NOTES = []; tsQuiet(true);
+  TS_RUN = true; TS_DEAD = false; TS_NOTES = []; TS_EARN = 0; TS_WORK = 0; tsQuiet(true);
   fade(() => {
     let died = false;
     try {
       const d1 = snap.d0 + years * YEAR;
+      let at = snap.d0;
       for (let i = 1; ; i++) {                       // stand on every birthday inside the skip
         const b = tsBday(snap.d0, i); if (b > d1) break;
+        tsIncome(at, b); at = b;                     // wages for the year that just passed
         st.min = (b - 1) * 1440 + 7 * 60;
         tsNeeds(); st.dyCheck = 0;
         dieCheck();
         if (TS_DEAD) { died = true; break; }
         yearlyWorld();
-        st.mDay = 0; dailyMoney();
+        tsInflate();
       }
       if (!died) {
+        tsIncome(at, d1);
         st.min = (d1 - 1) * 1440 + 7 * 60;
-        tsNeeds(); st.dyCheck = 0; dailyMoney();
+        tsNeeds(); st.dyCheck = 0; tsInflate();
 
-        st.money = Math.max(0, st.money - Math.min(st.money, cost));
         st.sick = null; st.payMod = null;
         if (st.body) { st.body.injured = 0; st.body.stress = Math.max(0, Math.min(40, (st.body.stress || 0) - 20)); }
         H().missed = 0;
@@ -105,11 +140,14 @@ function tsSleep(years, cost) {
         if (ph().meet) { ph().meet = null; TS_NOTES.push('🤝 นัดที่ค้างไว้ผ่านไปแล้ว'); }
         for (const id in ph().msgs) ph().msgs[id] = ph().msgs[id].slice(-4);
         st.schChk = day(); st.evDay = day();          // a quiet first morning: no truancy, no random event
+        tsNoBills();
+        const m1 = st.money;
         lifeTick(); seasonTick();
+        if (st.money < m1) st.money = m1;             // sleeping is free: undo any bill charged on waking
         if (TS_DEAD) died = true;                       // old age can still catch up during the settle
         else {
           S.n++; S.years = (S.years || 0) + years; S.last = day();
-          S.sum = tsBuild(snap, years, cost);
+          S.sum = tsBuild(snap, years);
         }
       }
       save();
@@ -123,12 +161,15 @@ function tsSleep(years, cost) {
   }, 900);
 }
 
-function tsBuild(snap, years, cost) {
-  const S = tsState(), a1 = age(), d1 = day(), rows = [];
+function tsBuild(snap, years) {
+  const S = tsState(), a1 = age(), d1 = day(), rows = [], J = tsJob();
   rows.push(`🗓️ ผ่านไป ${years} ปี (${years * YEAR} วัน) · วันที่ ${snap.d0} → ${d1}`);
   rows.push(`🎂 อายุ ${snap.a0} → ${a1} ปี`);
-  if (cost) rows.push(`💸 ค่าครองชีพ ฿${Math.min(snap.m0, cost)}${cost > snap.m0 ? ' (ใช้จนหมด)' : ''}`);
+  if (TS_WORK && TS_EARN) rows.push(`💼 รายได้ระหว่างหลับ +฿${TS_EARN} (${J ? J.n : 'งาน'} · ทำงาน ${TS_WORK} วัน · เฉลี่ย ฿${Math.round(TS_EARN / TS_WORK)}/กะ)`);
+  else rows.push(`💼 ไม่มีรายได้ระหว่างหลับ — ${J ? 'ช่วงนี้ไม่มีวันทำงาน' : 'ยังไม่มีงานประจำ'}`);
   if (st.money !== snap.m0) rows.push(`💰 เงิน ฿${snap.m0} → ฿${st.money}`);
+  if (snap.a0 < 18 && a1 >= 18 && (st.famMoney || 0) > 0) rows.push('👪 อายุ 18 แล้ว — เงินของพ่อแม่ไม่นับรวมในกระเป๋าของคุณอีก');
+
   for (const k of ['dad', 'mom']) {
     if (!snap.dead0[k] && st.parents?.[k]?.dead) rows.push(`🕯️ ${k === 'dad' ? 'พ่อ' : 'แม่'}จากไปอย่างสงบ`);
   }

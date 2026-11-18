@@ -62,7 +62,7 @@ Then open `http://localhost:8765/pixel-town-32.html`.
 | `js/income.js` | Extra income: a daily three-job side board with an all-three bonus, three online freelance offers per day, a four-asset investment market with daily prices, and a daily check-in streak. Adds phone apps, a PC shortcut and a board in the plaza. |
 | `js/stories.js` | Phase 5 "ชุดเชื่อมเมือง": three connected four-chapter life stories (the old café, the furniture family, the carpenter's secret) sharing one backstory, one chapter per in-game day with a one-day grace window, a `📖 เรื่องราว` phone app, ending-specific rewards, three world flags, story phone messages, and two enterable interiors (ร้านกาแฟเก่า, โรงไม้) on the `nRoom` scene. |
 | `js/funtime.js` | 15 inviteable activities for a partner, spouse, parent, child or close friend (picnic, movie night, stargazing, night market, beach trip, family dinner…), each with a two-person animation, place/time/price rules, a daily cooldown, relationship/mood rewards, a keepsake photo in the phone album, and a 🖼️ memory log with daily and streak bonuses. |
-| `js/timeskip.js` | Sleep through whole years from the bed: 🌌 นอนข้ามเวลา offers 1/2/3/5/10 years, simulates every birthday inside the skip (aging, parent deaths, town news, rent/loans/inflation), auto-resolves missed story chapters, and reports everything in one 🌅 summary panel. Old saves get `st.ts` lazily. |
+| `js/timeskip.js` | Sleep through whole years from the bed: 🌌 นอนข้ามเวลา offers 1/2/3/5/10 years, simulates every birthday inside the skip (aging, parent deaths, town news, inflation, job wages), auto-resolves missed story chapters, and reports everything in one 🌅 summary panel. Sleeping is free. Old saves get `st.ts` lazily. |
 | `js/system.js` | Title screen with save slots, pause menu, settings. Any Escape that closes a conversation is swallowed so the pause menu cannot open on top of it. |
 
 ## Load order (important)
@@ -161,19 +161,25 @@ Load order now ends with: `… career, tech, income, housing, social, memory, re
 ## Sleeping through years (`js/timeskip.js`)
 
 The bed menu gains **🌌 นอนข้ามเวลา (ข้ามได้หลายปี)**. Pick 1, 2, 3, 5 or 10 years; the confirm step
-shows the days, the new age and the living cost (฿6/day plus weekly rent or mortgage once you are 18 —
-your parents cover the years before that). The skip lands at 07:00 exactly N×28 days later and stops on every
-birthday in between, so `dieCheck()`, `yearlyWorld()` and `dailyMoney()` see each year: you age, your
-parents age and may pass away, townsfolk marry / have children / die, prices inflate and loans and
-utilities are paid. Then one `lifeTick()` / `seasonTick()` settles the new day — graduation, a pending
-birth, housing deadlines, phone messages and `stDayCheck()`, which auto-skips missed story chapters.
+shows the days, the new age and how much your job will pay for the skipped working days. **Sleeping
+costs nothing** — no living cost, rent, mortgage, bills or loan payments are charged for the missed
+days. Instead your current job keeps paying: each skipped working day earns that job's shift wage at
+your current level (× `payMul()`, class and mayor wage bonuses; office jobs rest on weekends), and an
+unemployed character simply earns nothing. The skip lands at 07:00 exactly N×28 days later and stops on
+every birthday in between, so `dieCheck()`, `yearlyWorld()` and inflation (`tsInflate()`, copied from
+`dailyMoney()`) see each year: you age, your parents age and may pass away, townsfolk marry / have
+children / die, prices and wages inflate. Then one `lifeTick()` / `seasonTick()` settles the new day —
+graduation, a pending birth, housing deadlines, phone messages and `stDayCheck()`, which auto-skips
+missed story chapters. Any bill that still fires on the wake-up morning is refunded, so a long sleep
+never costs money.
 
 Waking up restores a rested body (respecting the age-50 energy cap), clears illness and injury, resets
 rent arrears, and extends a passed move-out deadline by 7 days so you are not evicted while asleep.
 Napping while pregnant is blocked until the baby arrives. Everything is reported in a **🌅 ตื่นขึ้นมา**
-panel (age, days, money, parents, children, missed chapters, inflation, new messages, notable events
-and a dream line); the same summary can be reopened from the bed. State lives in `st.ts` (`n`, `years`,
-`last`, `sum`) and the 🌌 หลับข้ามปี achievement unlocks at five skipped years. Toasts raised during the
+panel (age, days, `💼 รายได้ระหว่างหลับ +฿…` with the number of worked days and the average wage, money
+before → after, parents, children, missed chapters, inflation, new messages, notable events and a dream
+line); the same summary can be reopened from the bed. State lives in `st.ts` (`n`, `years`, `last`,
+`sum`) and the 🌌 หลับข้ามปี achievement unlocks at five skipped years. Toasts raised during the
 simulation are collected instead of spamming the screen, and the random daily event is suppressed on
 the first morning so the summary is not buried under a pop-up.
 
