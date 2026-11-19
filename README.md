@@ -66,6 +66,7 @@ Then open `http://localhost:8765/pixel-town-32.html`.
 | `js/swap.js` | Family switching: the `👪 ครอบครัว` phone app plays any household member (parents, spouse, siblings, kids of any age) back and forth for free, leaves the body you left behind as an NPC living at home, keeps one shared household purse while skills/inventory/outfit/job stay per person, warps you home from anywhere, and pays the family members you are not playing at 18:00. Haircuts, dyes and outfits you change while playing a body are written back to that body's record and NPC sprite; every body sprite is built from `palOf(look)` plus its baked `look.base`, so the person you switch into is pixel-identical to the NPC you left behind. A 🧬 DNA section in the app lists which parent gave each hair colour, skin tone and eye colour. Old saves get `st.famSw` and `st.ageShift0` lazily. |
 | `js/sibling.js` | Siblings rolled at the start of a new life (22% none, 46% one, 32% two): an older brother/sister or younger one, 1–5 years apart, with their own name, gender, trait, schedule, DNA record from พ่อ/แม่, and a baked everyday outfit. They live in the house, show up in the `👪 ครอบครัว` app, journal and family rows, can be switched into like any family member, and answer to คุยด้วย / กอด / เล่นด้วยกัน / ขอเงินพี่ / ให้ของขวัญ. `ensureSibs()` is idempotent, so `makeFamily`, `passTorch` and `start` can rebuild the household without duplicating anyone. |
 | `js/famgig.js` | Family help gigs: walk up to a parent, sibling or spouse at their workplace, at school or at home in the evening and choose “ช่วยงาน”. You get a share of their wage (45% at work, a smaller household rate at home, nothing but skill and bond for school/toddler help), +4 closeness, a little skill XP, and they remember it. Once per person per day, reset at midnight. Family members who are inside a building are reachable through that building's door option; the 👪 app lists who still needs a hand today and the running total earned. Old saves get `st.fgig` lazily. |
+| `js/famshop.js` | Family food stall: cook dishes at home, then sell them at a stall on the town plaza (09:00–21:00). Prices come from the café value table × cooking skill quality. One family member can work the counter — a mother/spouse adds 12% price, a father 6%, a sibling +2 customers — for a 20% cut of the gross, but only while their own schedule has them free (home, plaza, park); at work or school they give no bonus. Customers are capped per day (`4 + charm/2 + helper + reputation/20`, −2 in rain, +2 at festivals), so a session is: cook a batch, walk to the plaza, sell it, go home. Tracks `st.famShop` lazily (today's takings, best day, days open, reputation, helper, family's share) and shows a section in the 👪 app. Adds a white/blue/pink apron top and one new cut per gender (quiff, low bun). |
 | `js/system.js` | Title screen with save slots, pause menu, settings. Any Escape that closes a conversation is swallowed so the pause menu cannot open on top of it. |
 
 ## Load order (important)
@@ -77,7 +78,7 @@ people, game, mapart, wearart, life, seasons, school, shops, pets, wardrobe, fas
 minis, anim, love, phone, walk, dialog, events, audio, collect, biz, quests, adventure,
 mayor, talkbox, goals, wallet, lively, homes, family, collections, career, tech, income,
 housing, social, memory, realism, townlife, npclife, npcdeep, npcmove, nightlife, tutorial, lighting,
-status, safety, dating, stories, funtime, timeskip, sibling, swap, famgig, system
+status, safety, dating, stories, funtime, timeskip, sibling, swap, famgig, famshop, system
 ```
 
 Modules are plain scripts that share one global scope. A later module can replace or wrap an earlier one's functions (for example `talk`, `say`, `updatePerson`, `personOpts`, `seasonTick`, `lifeTick`, `drawEnt`, `update`). Changing the order will break things. Add new modules before `system.js`, and register them in the array at the bottom of the HTML.
@@ -159,7 +160,7 @@ keepsake photo lands in the camera album. Three activities in one day (🌟) and
 (🔥) give a small mood bonus. All state is created lazily, so old saves load unchanged, and nothing
 here is required for the story or the money balance.
 
-Load order now ends with: `… career, tech, income, housing, social, memory, realism, townlife, npclife, npcdeep, npcmove, nightlife, tutorial, lighting, status, safety, dating, stories, funtime, timeskip, sibling, swap, famgig, system`. Backups of the files before the sprite update: `js.backup-before-sprites/`.
+Load order now ends with: `… career, tech, income, housing, social, memory, realism, townlife, npclife, npcdeep, npcmove, nightlife, tutorial, lighting, status, safety, dating, stories, funtime, timeskip, sibling, swap, famgig, famshop, system`. Backups of the files before the sprite update: `js.backup-before-sprites/`.
 
 ## Sleeping through years (`js/timeskip.js`)
 
@@ -270,6 +271,32 @@ the first morning so the summary is not buried under a pop-up.
   (สมัครงาน/งานพิเศษ ยังอยู่ครบ)
 - พี่น้องมี `role` ตามวัย (`student` < 18, `worker` 18+) และเด็กเล็กได้ `_sched = [[0,'in']]`
   จึงอยู่บ้านทั้งวัน ไม่เดินไปโรงเรียนเอง
+
+## ซุ้มอาหารครอบครัว (`js/famshop.js`)
+
+วงจรเล่นสั้น ๆ 5–10 นาที: **ทำอาหารที่บ้าน → เดินไปขายที่ซุ้มกลางลานเมือง → กลับบ้าน**
+
+- ที่ลานเมือง (พิกัด `20×T+16, 8×T+22` ใกล้กระดานประกาศ) มีซุ้มเปิด **09:00–21:00** ตัวเลือก
+  `🧺 เปิดซุ้มขายอาหาร` — ข้างในมีรายการอาหารที่ทำเองในกระเป๋า พร้อมราคาต่อจาน
+- ราคา = `BIZ.cafe.value[id]` (โต๊ะราคาเดิมของคาเฟ่) × คุณภาพจากสกิลทำอาหาร
+  (`1 + min(30%, lv(cook)×3%)`) × ชื่อเสียงซุ้ม (`+ สูงสุด 10%`) × โบนัสคนช่วย
+- **คนช่วย**: ชวนพ่อ แม่ คู่สมรส หรือพี่น้องได้หนึ่งคน
+  - แม่/คู่สมรส: ราคา +12%, ลูกค้า +1 (ช่วยเรื่องครัว)
+  - พ่อ: ราคา +6%, ลูกค้า +1
+  - พี่น้อง: ลูกค้า +2 (อายุต่ำกว่า 18 ได้ +2 เช่นกัน แต่ราคา +4%)
+  - คนช่วยได้ **20% ของยอดขาย** (บันทึกใน `st.famShop.helpEarn`) และความสนิท +1 ต่อจาน
+  - **ต้องว่างจริง**: เช็ก `slotOf()` ของเขา — ถ้าอยู่ที่ทำงาน/โรงเรียนจะไม่มาและไม่ให้โบนัส
+    (ซุ้มจะขึ้นว่า “กำลังทำงานอยู่ — โบนัสกลับมาตอนเย็น/วันหยุด”) คนช่วยจึงถูกวาดที่ซุ้มเฉพาะตอนมาช่วยจริง
+- **ลูกค้าจำกัดต่อวัน**: `4 + floor(charm/2) + โบนัสคนช่วย + floor(ชื่อเสียง/20)`
+  (ฝนตก −2, เทศกาล +2, สูงสุด 12 คน) — ขายหมดแล้วต้องรอพรุ่งนี้ ทำให้แต่ละรอบสั้นและมีจังหวะ
+- ขายแล้วได้เงิน (80% เข้ากระเป๋าเรา, 20% แบ่งคนช่วย), เสน่ห์ +2 ต่อจาน, พลังงาน −1, พลังใจ +2,
+  ใช้เวลา 6 นาทีต่อจาน, ชื่อเสียงซุ้ม +1 ต่อจาน และมีบทลูกค้า NPC สุ่มมาสั่งพร้อมคำชม
+- แอป 👪 มีส่วน **🧺 ซุ้มอาหารครอบครัว**: คนช่วย, ยอดวันนี้, ลูกค้าที่เหลือ, ขายดีที่สุด,
+  จำนวนวันที่เปิด, ชื่อเสียง และยอดรวม — ทั้งหมดเก็บใน `st.famShop` (สร้างเองให้เซฟเก่า)
+- เตาทำอาหารมีข้อความเตือนว่าทำเสร็จแล้วเอาไปขายที่ซุ้มได้
+- เพิ่มของใหม่ทางหน้าตา: **ผ้ากันเปื้อน** (ขาว/น้ำเงิน/ชมพู, ฿80) และทรงผมใหม่เพศละหนึ่งแบบ
+  — **เสยเปิดหน้าผาก** (ชาย) และ **เกล้าต่ำ** (หญิง) ผ่าน `HAIR_G`, `HX_STYLE`, `CREATOR_HAIR`,
+  `HAIRSTYLES` ตามกฎแยกทรงผมชาย/หญิงเดิม
 
 ## Map redesign (`js/mapart.js`, loaded right after `game.js`)
 
